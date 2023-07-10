@@ -217,6 +217,8 @@ def get_trabajadores():
     urlCatTRAB = "https://docs.google.com/spreadsheets/d/1f1l2OFLYFqWNcy084IiATyquMH7v2nnRx3lKfE8QAH0/gviz/tq?tqx=out:csv&sheet=catTRAB"
     CATTRAB = pd.read_csv(urlCatTRAB)
 
+    CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] > 1]
+
     return CATTRAB[["idTrabajador", "Nombres", "APaterno"]].loc[CATTRAB['idActivo'] == True].to_json()
 
 @app.route("/api/trabajadores/asistencias")

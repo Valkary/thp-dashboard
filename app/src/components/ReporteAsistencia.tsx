@@ -1,14 +1,13 @@
 import { createEffect, createSignal, type JSXElement } from "solid-js";
 import Table from "./Table";
+import { reestructure_obj } from "../functions/objects";
 
 const today = new Date();
 const weekday_today = today.getDay();
 const last_thursday = new Date();
-const next_wednesday = new Date();
 
-last_thursday.setDate(today.getDate() - weekday_today - 3);
-next_wednesday.setDate(today.getDate() + (3 - weekday_today));
-const fechas = fillDates(last_thursday, next_wednesday);
+last_thursday.setDate(weekday_today < 4 ? today.getDate() - weekday_today - 3 : today.getDate() - weekday_today + 4);
+const fechas = fillDates(last_thursday, today);
 
 const INCIDENCIAS = {
     "A": "bg-green-50 text-green-600",
@@ -24,35 +23,21 @@ type INCIDENCIAS_KEYS = keyof typeof INCIDENCIAS;
 
 type RecordIncidencia = {
     nombres: string;
-    J: INCIDENCIAS_KEYS,
-    V: INCIDENCIAS_KEYS,
-    S: INCIDENCIAS_KEYS,
-    D: INCIDENCIAS_KEYS,
-    L: INCIDENCIAS_KEYS,
-    M: INCIDENCIAS_KEYS,
-    m: INCIDENCIAS_KEYS,
-}
-
-function reestructure_obj(obj: Record<string, any>): Record<string, any>[] {
-    const keys = Object.keys(obj);
-    const len = Object.keys(obj[keys[0]]).length;
-
-    let table: Record<string, any>[] = Array.from({ length: len }, () => ({}));
-
-    for (let i = 0; i < len; i++) {
-        for (let j = 0; j < keys.length; j++) {
-            table[i][keys[j]] = Object.values(obj[keys[j]])[i];
-        }
-    }
-
-    return table;
+    J?: INCIDENCIAS_KEYS,
+    V?: INCIDENCIAS_KEYS,
+    S?: INCIDENCIAS_KEYS,
+    D?: INCIDENCIAS_KEYS,
+    L?: INCIDENCIAS_KEYS,
+    M?: INCIDENCIAS_KEYS,
+    m?: INCIDENCIAS_KEYS,
 }
 
 function fillDates(start: Date, finish: Date): string[] {
     let dates = [];
 
     for (let date = start; date <= finish; date.setDate(date.getDate() + 1)) {
-        dates.push(`${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`);
+        const utc_str_arr = date.toUTCString().split(" ");
+        dates.push(`${utc_str_arr[1]} ${utc_str_arr[2]}`);
     }
 
     return dates;
@@ -61,20 +46,7 @@ function fillDates(start: Date, finish: Date): string[] {
 function fillReport(fechas: string[], incidencias: Record<string, any>, trabajadores: Record<string, any>): RecordIncidencia[] {
     const table: RecordIncidencia[] = new Array(trabajadores.length);
 
-    for (let i = 0; i < trabajadores.length; i++) {
-        table[i] = {
-            nombres: `${trabajadores[i].Nombres} ${trabajadores[i].APaterno}`.toUpperCase(),
-            J: "A",
-            V: "A",
-            S: "A",
-            D: "A",
-            L: "A",
-            M: "A",
-            m: "A",
-        }
-    }
-
-    const date_dict = {
+    const date_dict: Record<number, string> = {
         0: "J",
         1: "V",
         2: "S",
@@ -84,13 +56,23 @@ function fillReport(fechas: string[], incidencias: Record<string, any>, trabajad
         6: "m",
     }
 
+    for (let i = 0; i < trabajadores.length; i++) {
+        table[i] = {
+            nombres: `${trabajadores[i].Nombres} ${trabajadores[i].APaterno}`.toUpperCase(),
+        }
+
+        for (let j = 0; j < fechas.length; j++) {
+            // @ts-ignore
+            table[i][date_dict[j]] = "A";
+        }
+    }
+
     for (let i = 0; i < incidencias.length; i++) {
         const incidencia = incidencias[i];
-        const fecha = new Date(incidencia.Fecha).toUTCString();
+        const date = new Date(incidencia.Fecha);
+        const utc_str_arr = date.toUTCString().split(" ");
 
-        const fecha_str = fecha;
-
-        console.log(fecha_str, incidencia.idIncidencia);
+        const fecha_str = `${utc_str_arr[1]} ${utc_str_arr[2]}`;
 
         const id_fecha: number = fechas.indexOf(fecha_str);
         let id_trab: number;
@@ -117,8 +99,6 @@ async function make_report() {
 
     const trab_obj = reestructure_obj(trabajadores);
     const incidencias_obj = reestructure_obj(incidencias);
-
-    console.log(incidencias_obj)
 
     return fillReport(fechas, incidencias_obj, trab_obj);
 }
@@ -147,7 +127,7 @@ export default function ReporteASistencia() {
     const [table, setTable] = createSignal<RecordIncidencia[]>([]);
     let titles = [<h3 class="text-xl font-bold">Trabajador</h3>];
 
-    const days = {
+    const days: Record<number, string> = {
         0: "Jueves",
         1: "Viernes",
         2: "Sábado",
