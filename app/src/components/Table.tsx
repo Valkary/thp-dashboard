@@ -7,8 +7,6 @@ type Props = {
 }
 
 export default function Table(props: Props) {
-    if (!props.data) return <div>NO DATA</div>
-
     const data_keys = () => Object.keys(props.data[0]);
 
     return <table>
@@ -22,7 +20,7 @@ export default function Table(props: Props) {
             </tr>
         </thead>
         <tbody>
-            <For each={props.data}>
+            <For each={props.data} fallback={<div>No data</div>}>
                 {(record, index) => (
                     <tr class={`${index() % 2 ? "bg-white" : "bg-gray-100"} border-b`}>
                         <For each={data_keys()}>

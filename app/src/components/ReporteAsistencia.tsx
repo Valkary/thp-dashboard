@@ -1,4 +1,4 @@
-import { createEffect, createSignal, type JSXElement } from "solid-js";
+import { createEffect, createSignal, Switch, type JSXElement, Match, createResource } from "solid-js";
 import Table from "./Table";
 import { reestructure_obj } from "../functions/objects";
 
@@ -93,10 +93,7 @@ function fillReport(fechas: string[], incidencias: Record<string, any>, trabajad
     return table;
 }
 
-async function make_report() {
-    const trabajadores = await (await fetch("http://127.0.0.1:5000/api/trabajadores")).json();
-    const incidencias = await (await fetch("http://127.0.0.1:5000/api/trabajadores/asistencias")).json();
-
+function make_report(trabajadores: Record<string, any>, incidencias: Record<string, any>) {
     const trab_obj = reestructure_obj(trabajadores);
     const incidencias_obj = reestructure_obj(incidencias);
 
@@ -123,8 +120,26 @@ const col_conditions = {
     m: incid_type,
 };
 
+async function fetchTrabajadores() {
+    return await (await fetch("http://127.0.0.1:5000/api/trabajadores")).json();
+}
+
+async function fetchIncidencias() {
+    return await (await fetch("http://127.0.0.1:5000/api/trabajadores/asistencias")).json();
+}
+
+type State = {
+    state: "ERROR" | "LOADING" | "READY",
+    msg?: string
+}
+
 export default function ReporteASistencia() {
-    const [table, setTable] = createSignal<RecordIncidencia[]>([]);
+    const [table, setTable] = createSignal<RecordIncidencia[] | null>(null);
+    const [state, setState] = createSignal<State>({ state: "LOADING" });
+
+    const [trab_resource] = createResource(fetchTrabajadores);
+    const [incid_resource] = createResource(fetchIncidencias);
+    
     let titles = [<h3 class="text-xl font-bold">Trabajador</h3>];
 
     const days: Record<number, string> = {
@@ -137,18 +152,30 @@ export default function ReporteASistencia() {
         6: "Miércoles",
     };
 
-    for (let i = 0; i < fechas.length; i++) {
-        titles.push(<div class="text-xl font-bold w-full h-full">
-            <h3>{days[i]}</h3>
-            <h3>{fechas[i]}</h3>
-        </div>)
-    }
+    titles = [titles, ...Object.values(days)];
 
     createEffect(async () => {
-        const report = await make_report();
+        if (trab_resource.state === "ready" && incid_resource.state === "ready") {
+            setState({ state: "READY", msg: "" });
+            const report = make_report(trab_resource.latest, incid_resource.latest);
+            setTable(report);
+        } else if (trab_resource.error || incid_resource.error) {
+            setState({ state: "ERROR", msg: "Error de peticion de tablas" });
+        } else if (trab_resource.loading || incid_resource.loading) {
+            setState({ state: "LOADING", msg: "Cargando informacion..." });
+        }
+    });
 
-        setTable(report);
-    })
-
-    return <Table data={table()} titles={titles} col_conditions={col_conditions} />
+    return <Switch>
+        <Match when={state().state === "ERROR"}>
+            {state().msg}
+        </Match>
+        <Match when={state().state === "LOADING"}>
+            {state().msg}
+        </Match>
+        <Match when={state().state === "READY" && table() !== null}>
+            <Table data={table()} titles={titles} col_conditions={col_conditions} />
+        </Match>
+    </Switch> 
+    
 }
