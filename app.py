@@ -3,7 +3,10 @@ import pandas as pd
 from datetime import date, timedelta
 from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(__name__,
+            static_url_path='',
+            static_folder='web/static',
+            template_folder='web/templates')
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 def get_last_thursday():
@@ -16,7 +19,6 @@ def get_last_thursday():
 @app.route("/")
 def hello_world():
     return "Hello, World!"
-
 
 @app.route("/api/incidencias/semana")
 def faltas_semana():
@@ -238,3 +240,6 @@ def get_asistencias():
     MERGED_INCIDENCIAS = INCIDENCIAS_SEMANA.merge(CATTRAB, on=["idTrabajador"], how="left")
 
     return MERGED_INCIDENCIAS[["Fecha", "idTrabajador", "idIncidencia"]].to_json()
+
+if __name__ == "__main__":
+    app.run()
