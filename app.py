@@ -220,8 +220,9 @@ def get_trabajadores():
     CATTRAB = pd.read_csv(urlCatTRAB)
 
     CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] > 1]
+    SORTED_TRAB = CATTRAB.sort_values(by=["idNivel"], ascending=False)
 
-    return CATTRAB[["idTrabajador", "Nombres", "APaterno"]].loc[CATTRAB['idActivo'] == True].to_json()
+    return SORTED_TRAB[["idTrabajador", "Nombres", "APaterno"]].loc[CATTRAB['idActivo'] == True].to_json()
 
 @app.route("/api/trabajadores/asistencias")
 def get_asistencias():
