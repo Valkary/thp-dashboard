@@ -12,3 +12,31 @@ export function reestructure_obj(obj: Record<string, any>): Record<string, any>[
 
     return table;
 }
+
+export function sort_obj_array(arr: Record<string, any>[], key: string, ascending: boolean) {
+    let swapped = true;
+
+    do {
+        swapped = false;
+
+        for (let i = 0; i < arr.length - 1; i++) {
+            if (ascending) {
+                if (arr[i][key] > arr[i + 1][key]) {
+                    let tmp = arr[i];
+                    arr[i] = arr[i + 1];
+                    arr[i + 1] = tmp;
+                    swapped = true;
+                }
+            } else {
+                if (arr[i][key] < arr[i + 1][key]) {
+                    let tmp = arr[i];
+                    arr[i] = arr[i + 1];
+                    arr[i + 1] = tmp;
+                    swapped = true;
+                }
+            }
+        }
+    } while (swapped);
+
+    return arr;
+}

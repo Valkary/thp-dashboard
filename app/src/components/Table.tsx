@@ -25,7 +25,7 @@ export default function Table(props: Props) {
                     <tr class={`${index() % 2 ? "bg-white" : "bg-gray-100"} border-b`}>
                         <For each={data_keys()}>
                             {(key, count) => (
-                                <td class={`border-2 border-black whitespace-nowrap text-sm font-medium text-center text-gray-900 ${count() === 0 ? "font-medium" : "font-light"}`}>
+                                <td class={`border-2 border-black whitespace-nowrap text-sm font-medium text-gray-900 ${count() === 0 ? "font-medium text-left" : "font-light text-center"}`}>
                                     {(props.col_conditions && props.col_conditions[key]) ?
                                         props.col_conditions[key](key, record[key]) :
                                         record[key]

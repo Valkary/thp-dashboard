@@ -1,8 +1,14 @@
 import { createEffect, createSignal, Switch, type JSXElement, Match, createResource } from "solid-js";
 import Table from "./Table";
-import { reestructure_obj } from "../functions/objects";
+import { reestructure_obj, sort_obj_array } from "../functions/objects";
+import { fetchIncidencias, fetchTrabajadores } from "../functions/fetch";
 
 const today = new Date();
+const year_start = new Date(today.getFullYear(), 0, 1);
+
+// @ts-ignore
+const week_num = Math.ceil(Math.floor((today - year_start) / (24 * 60 * 60 * 1000))/ 7);
+
 const weekday_today = today.getDay();
 const last_thursday = new Date();
 
@@ -97,6 +103,8 @@ function make_report(trabajadores: Record<string, any>, incidencias: Record<stri
     const trab_obj = reestructure_obj(trabajadores);
     const incidencias_obj = reestructure_obj(incidencias);
 
+    sort_obj_array(trab_obj, "idNivel", false);
+
     return fillReport(fechas, incidencias_obj, trab_obj);
 }
 
@@ -120,14 +128,6 @@ const col_conditions = {
     m: incid_type,
 };
 
-async function fetchTrabajadores() {
-    return await (await fetch("http://127.0.0.1:5000/api/trabajadores")).json();
-}
-
-async function fetchIncidencias() {
-    return await (await fetch("http://127.0.0.1:5000/api/trabajadores/asistencias")).json();
-}
-
 type State = {
     state: "ERROR" | "LOADING" | "READY",
     msg?: string
@@ -143,13 +143,13 @@ export default function ReporteASistencia() {
     let titles = [<h3 class="text-xl font-bold">Trabajador</h3>];
 
     const days: Record<number, string> = {
-        0: "Jueves",
-        1: "Viernes",
-        2: "Sábado",
-        3: "Domingo",
-        4: "Lunes",
-        5: "Martes",
-        6: "Miércoles",
+        0: "J",
+        1: "V",
+        2: "S",
+        3: "D",
+        4: "L",
+        5: "M",
+        6: "m",
     };
 
     titles = [titles, ...Object.values(days)];
@@ -173,8 +173,37 @@ export default function ReporteASistencia() {
         <Match when={state().state === "LOADING"}>
             {state().msg}
         </Match>
-        <Match when={state().state === "READY" && table() !== null}>
-            <Table data={table()} titles={titles} col_conditions={col_conditions} />
+        <Match when={state().state === "READY" && table() !== null && typeof table()?.length !== "undefined"}>
+            <div class="w-full h-screen flex flex-col items-center gap-5">
+                <h1 class="uppercase tracking-wide font-bold underline">José Salcedo Nuñez</h1>
+
+                <div class="flex justify-around uppercase w-full max-w-7xl">
+                    <h2>Nómina periodo {week_num}</h2>
+                    <h2 class="font-bold underline">{today.getFullYear()}</h2>
+                </div>
+                
+                <Table data={table()!} titles={titles} col_conditions={col_conditions} />
+
+                <div class="text-xs">
+                    <h3 class="font-bold uppercase">Trabajadores: {table()!.length}</h3>
+                    <h3 class="font-bold uppercase underline">Clave</h3>
+
+                    <ul class="ml-5">
+                        <li>A = ASISTENCIA</li>
+                        <li>B = BAJA</li>
+                        <li>P = PERMISO (FALTA INJUSTIFICADA, NO AMERITA ACTA ADMINISTRATIVA)</li>
+                        <li>F = FALTA INJUSTIFICADA (AMERITA ACTA ADMINISTRATIVA)</li>
+                        <li>V = VACACIONES</li>
+                        <li>N = NO LABORABLE</li>
+                        <li>I = INCAPACIDAD</li>
+                    </ul>
+                </div>
+
+                <div class="w-full flex flex-col items-center mt-20">
+                    <div class="w-1/4 h-[4px] bg-black" />
+                    <p>JEFE DE PRODUCCIÓN</p>
+                </div>
+            </div>
         </Match>
     </Switch> 
     
