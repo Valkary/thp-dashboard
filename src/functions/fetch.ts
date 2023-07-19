@@ -25,3 +25,13 @@ export async function fetch_structured_station_production_data(station: Estacion
         return [];
     }
 }
+
+export async function fetch_structured_full_trabajadores() {
+    try {
+        const data = await (await fetch(`${host}/api/trabajadores_full`)).json();
+        return reestructure_obj(data);
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
+}
