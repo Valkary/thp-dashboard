@@ -45,7 +45,7 @@ function fillDates(start: Date, finish: Date): string[] {
         const utc_str_arr = date.toUTCString().split(" ");
         dates.push(`${utc_str_arr[1]} ${utc_str_arr[2]}`);
     }
-
+    
     return dates;
 }
 
@@ -140,8 +140,6 @@ export default function ReporteASistencia() {
     const [trab_resource] = createResource(fetchTrabajadores);
     const [incid_resource] = createResource(fetchIncidencias);
     
-    let titles = [<h3 class="text-xl font-bold">Trabajador</h3>];
-
     const days: Record<number, string> = {
         0: "J",
         1: "V",
@@ -152,7 +150,26 @@ export default function ReporteASistencia() {
         6: "m",
     };
 
-    titles = [titles, ...Object.values(days)];
+    const months: Record<number, string> = {
+        0: "ENE",
+        1: "FEB",
+        2: "MAR",
+        3: "ABR",
+        4: "MAY",
+        5: "JUN",
+        6: "JUL",
+        7: "AGO",
+        8: "SEP",
+        9: "OCT",
+        10: "NOV",
+        11: "DIC"
+    }
+
+    let titles: Record<string, JSXElement> = { 0: <h3 class="text-xl font-bold">Trabajador</h3> };
+
+    for (let i = 0; i < 7; i++) {
+        titles[i + 1] = `${days[i]} - ${fechas[i].split(" ")[0]}`;
+    }
 
     createEffect(async () => {
         if (trab_resource.state === "ready" && incid_resource.state === "ready") {
@@ -179,10 +196,11 @@ export default function ReporteASistencia() {
 
                 <div class="flex justify-around uppercase w-full max-w-7xl">
                     <h2>Nómina periodo {week_num}</h2>
+                    <h2>{months[today.getMonth()]}</h2>
                     <h2 class="font-bold underline">{today.getFullYear()}</h2>
                 </div>
                 
-                <Table data={table()!} titles={titles} col_conditions={col_conditions} />
+                <Table data={table()!} titles={Object.values(titles)} col_conditions={col_conditions} />
 
                 <div class="text-xs">
                     <h3 class="font-bold uppercase">Trabajadores: {table()!.length}</h3>
