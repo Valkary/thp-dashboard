@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from flask_talisman import Talisman
+#from flask_talisman import Talisman
 
 import pandas as pd
 from datetime import date, timedelta
@@ -11,7 +11,7 @@ app = Flask(__name__,
             template_folder='web/templates')
 
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-Talisman(app)
+#Talisman(app)
 
 def get_last_thursday():
     now = date.today()
@@ -337,4 +337,4 @@ def get_cardado_week():
     return MERGED_CARDADO[["Fecha", "Nombres", "idPT", "Laminas"]].to_json()
 
 if __name__ == "__main__":
-    app.run(ssl_context='adhoc')
+    app.run()
