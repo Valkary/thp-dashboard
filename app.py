@@ -1,13 +1,17 @@
 from flask import Flask
+from flask_cors import CORS
+from flask_talisman import Talisman
+
 import pandas as pd
 from datetime import date, timedelta
-from flask_cors import CORS
 
 app = Flask(__name__,
             static_url_path='',
             static_folder='web/static',
             template_folder='web/templates')
+
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+Talisman(app)
 
 def get_last_thursday():
     now = date.today()
@@ -45,7 +49,6 @@ def faltas_semana():
         MERGED_INCIDENCIAS['idIncidencia'] != "B") & (MERGED_INCIDENCIAS['idIncidencia'] != "N")]
 
     return INCIDENCIAS_SEMANA[cols].to_json()
-
 
 @app.route("/api/reportes/registro")
 def reporte_registro_produccion():
@@ -334,4 +337,4 @@ def get_cardado_week():
     return MERGED_CARDADO[["Fecha", "Nombres", "idPT", "Laminas"]].to_json()
 
 if __name__ == "__main__":
-    app.run()
+    app.run(ssl_context='adhoc')
