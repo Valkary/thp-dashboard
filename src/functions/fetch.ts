@@ -1,7 +1,7 @@
 import type { Estacion } from "./estaciones";
 import { reestructure_obj } from "./objects";
 
-const host = "192.168.100.10:5000";
+const host = "192.168.100.7:5000";
 
 export async function fetchTrabajadores() {
     return await (await fetch(`https://${host}/api/trabajadores`)).json();
