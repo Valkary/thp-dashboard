@@ -1,6 +1,10 @@
 from flask import Flask
 from flask_cors import CORS
+<<<<<<< HEAD
 #from flask_talisman import Talisman
+=======
+# from flask_talisman import Talisman
+>>>>>>> 7d5d8a7083bc17c26d0c0b476fc0c9cbae56e492
 
 import pandas as pd
 from datetime import date, timedelta
@@ -11,7 +15,11 @@ app = Flask(__name__,
             template_folder='web/templates')
 
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+<<<<<<< HEAD
 #Talisman(app)
+=======
+# Talisman(app)
+>>>>>>> 7d5d8a7083bc17c26d0c0b476fc0c9cbae56e492
 
 def get_last_thursday():
     now = date.today()
