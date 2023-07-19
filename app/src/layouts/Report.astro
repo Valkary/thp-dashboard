@@ -1,0 +1,47 @@
+---
+export interface Props {
+	title: string;
+    reporte: string;
+}
+
+const { title, reporte } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Astro description">
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+	</head>
+	<body>
+        <header class="w-full h-[10vh] flex items-center text-2xl uppercase tracking-wide font-bold">
+            <img
+                loading="eager"
+                src="/thp_logo_nl.png"
+                alt="Logo THP"
+                height="100%"
+                class="object-cover object-center h-full"
+            />
+            <h1>{reporte}</h1>
+        </header>
+		<slot />
+	</body>
+</html>
+<style is:global>
+	:root {
+		--accent: 124, 58, 237;
+		--accent-gradient: linear-gradient(45deg, rgb(var(--accent)), #da62c4 30%, white 60%);
+	}
+	html {
+		font-family: system-ui, sans-serif;
+		background-color: #F6F6F6;
+	}
+	code {
+		font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
+			Bitstream Vera Sans Mono, Courier New, monospace;
+	}
+</style>

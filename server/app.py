@@ -1,13 +1,17 @@
 from flask import Flask
+from flask_cors import CORS
+#from flask_talisman import Talisman
+
 import pandas as pd
 from datetime import date, timedelta
-from flask_cors import CORS
 
 app = Flask(__name__,
             static_url_path='',
             static_folder='web/static',
             template_folder='web/templates')
+
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+# Talisman(app)
 
 def get_last_thursday():
     now = date.today()
@@ -45,7 +49,6 @@ def faltas_semana():
         MERGED_INCIDENCIAS['idIncidencia'] != "B") & (MERGED_INCIDENCIAS['idIncidencia'] != "N")]
 
     return INCIDENCIAS_SEMANA[cols].to_json()
-
 
 @app.route("/api/reportes/registro")
 def reporte_registro_produccion():
@@ -223,6 +226,16 @@ def get_trabajadores():
     SORTED_TRAB = CATTRAB.sort_values(by=["idNivel"], ascending=False)
 
     return SORTED_TRAB[["idTrabajador", "idNivel", "Nombres", "APaterno"]].loc[CATTRAB['idActivo'] == True].to_json()
+
+@app.route("/api/trabajadores_full")
+def get_full_trabajadores():
+    urlCatTRAB = "https://docs.google.com/spreadsheets/d/1f1l2OFLYFqWNcy084IiATyquMH7v2nnRx3lKfE8QAH0/gviz/tq?tqx=out:csv&sheet=catTRAB"
+    CATTRAB = pd.read_csv(urlCatTRAB)
+
+    CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] > 1]
+    SORTED_TRAB = CATTRAB.sort_values(by=["idNivel"], ascending=False)
+
+    return SORTED_TRAB.loc[CATTRAB['idActivo'] == True].to_json()
 
 @app.route("/api/trabajadores/asistencias")
 def get_asistencias():
