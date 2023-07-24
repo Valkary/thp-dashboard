@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_cors import CORS
 #from flask_talisman import Talisman
 
@@ -19,10 +19,17 @@ def get_last_thursday():
     return (closest_thursday if closest_thursday < now
             else closest_thursday - timedelta(days=7))
 
+@app.route("/reportes/caratula_exp")
+def view_caratula():
+    return render_template('caratula_exp/index.html')
 
 @app.route("/")
-def hello_world():
-    return "Hello, World!"
+def view_asistencia():
+    return render_template('index.html')
+
+@app.route("/reportes/produccion_semana")
+def view_produccion_semana():
+    return render_template('produccion_semana/index.html')
 
 @app.route("/api/incidencias/semana")
 def faltas_semana():
