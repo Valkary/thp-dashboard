@@ -11,6 +11,14 @@ export async function fetchIncidencias() {
     return await (await fetch(`${host}/api/trabajadores/asistencias`)).json();
 }
 
+export async function fetchNoReportoAyer() {
+    try {
+        return await (await fetch(`${host}/api/produccion/ayer/ESTACIONES`)).json();
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 export async function fetchAndSerialize(fn: () => Promise<Record<string, any>>): Promise<Record<string, any>[]> {
     const data = await fn();
     return reestructure_obj(data);

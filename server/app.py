@@ -1,9 +1,7 @@
-from flask import Flask
+from flask import (Flask, render_template)
 from flask_cors import CORS
-#from flask_talisman import Talisman
-
 import pandas as pd
-from datetime import date, timedelta
+from datetime import (date, timedelta)
 
 app = Flask(__name__,
             static_url_path='',
@@ -11,7 +9,7 @@ app = Flask(__name__,
             template_folder='web/templates')
 
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-# Talisman(app)
+
 
 def get_last_thursday():
     now = date.today()
@@ -21,8 +19,29 @@ def get_last_thursday():
 
 
 @app.route("/")
-def hello_world():
-    return "Hello, World!"
+def view_menu():
+    return render_template('index.html')
+
+
+@app.route("/reportes/caratula_exp")
+def view_caratula():
+    return render_template('/reportes/caratula_exp/index.html')
+
+
+@app.route("/reportes/asistencia")
+def view_asistencia():
+    return render_template('/reportes/asistencia/index.html')
+
+
+@app.route("/reportes/produccion_semana")
+def view_produccion_semana():
+    return render_template('/reportes/produccion_semana/index.html')
+
+
+@app.route("/reportes/no_reporto")
+def view_produccion_ayer():
+    return render_template('/reportes/no_reporto/index.html')
+
 
 @app.route("/api/incidencias/semana")
 def faltas_semana():
@@ -49,6 +68,7 @@ def faltas_semana():
         MERGED_INCIDENCIAS['idIncidencia'] != "B") & (MERGED_INCIDENCIAS['idIncidencia'] != "N")]
 
     return INCIDENCIAS_SEMANA[cols].to_json()
+
 
 @app.route("/api/reportes/registro")
 def reporte_registro_produccion():
@@ -217,6 +237,7 @@ def reporte_registro_produccion():
     cols = ["idTrabajador", "Nombres", "Fecha"]
     return filtered_data[cols].groupby(['idTrabajador']).max().to_json()
 
+
 @app.route("/api/trabajadores")
 def get_trabajadores():
     urlCatTRAB = "https://docs.google.com/spreadsheets/d/1f1l2OFLYFqWNcy084IiATyquMH7v2nnRx3lKfE8QAH0/gviz/tq?tqx=out:csv&sheet=catTRAB"
@@ -227,6 +248,7 @@ def get_trabajadores():
 
     return SORTED_TRAB[["idTrabajador", "idNivel", "Nombres", "APaterno"]].loc[CATTRAB['idActivo'] == True].to_json()
 
+
 @app.route("/api/trabajadores_full")
 def get_full_trabajadores():
     urlCatTRAB = "https://docs.google.com/spreadsheets/d/1f1l2OFLYFqWNcy084IiATyquMH7v2nnRx3lKfE8QAH0/gviz/tq?tqx=out:csv&sheet=catTRAB"
@@ -236,6 +258,7 @@ def get_full_trabajadores():
     SORTED_TRAB = CATTRAB.sort_values(by=["idNivel"], ascending=False)
 
     return SORTED_TRAB.loc[CATTRAB['idActivo'] == True].to_json()
+
 
 @app.route("/api/trabajadores/asistencias")
 def get_asistencias():
@@ -251,9 +274,11 @@ def get_asistencias():
     INCIDENCIAS_SEMANA = INCIDENCIAS.loc[INCIDENCIAS['Fecha'] >= last_thursday]
     INCIDENCIAS["Fecha"] = pd.to_datetime(INCIDENCIAS["Fecha"], unit="ms")
 
-    MERGED_INCIDENCIAS = INCIDENCIAS_SEMANA.merge(CATTRAB, on=["idTrabajador"], how="left")
+    MERGED_INCIDENCIAS = INCIDENCIAS_SEMANA.merge(
+        CATTRAB, on=["idTrabajador"], how="left")
 
     return MERGED_INCIDENCIAS[["Fecha", "idTrabajador", "idIncidencia"]].to_json()
+
 
 @app.route("/api/produccion/ultima_semana/FORMULADO")
 def get_formulado_week():
@@ -270,9 +295,11 @@ def get_formulado_week():
 
     CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] > 1]
 
-    MERGED_FORMULADO = FORMULADO_SEMANA.merge(CATTRAB, on=["idTrabajador"], how="left")
+    MERGED_FORMULADO = FORMULADO_SEMANA.merge(
+        CATTRAB, on=["idTrabajador"], how="left")
 
     return MERGED_FORMULADO[["Fecha", "Nombres", "idFormula", "Cargas"]].to_json()
+
 
 @app.route("/api/produccion/ultima_semana/MEZCLADO")
 def get_mezclado_week():
@@ -289,8 +316,10 @@ def get_mezclado_week():
 
     CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] > 1]
 
-    MERGED_MEZCLADO = MEZCLADO_SEMANA.merge(CATTRAB, on=["idTrabajador"], how="left")
+    MERGED_MEZCLADO = MEZCLADO_SEMANA.merge(
+        CATTRAB, on=["idTrabajador"], how="left")
     return MERGED_MEZCLADO[["Fecha", "Nombres", "idFormula", "Cargas_MEZC"]].to_json()
+
 
 @app.route("/api/produccion/ultima_semana/LAMINADO")
 def get_laminado_week():
@@ -307,8 +336,10 @@ def get_laminado_week():
 
     CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] > 1]
 
-    MERGED_LAMINADO = LAMINADO_SEMANA.merge(CATTRAB, on=["idTrabajador"], how="left")
+    MERGED_LAMINADO = LAMINADO_SEMANA.merge(
+        CATTRAB, on=["idTrabajador"], how="left")
     return MERGED_LAMINADO[["Fecha", "Nombres"]].to_json()
+
 
 @app.route("/api/produccion/ultima_semana/VULCANIZADO")
 def get_vulcanizado_week():
@@ -325,8 +356,10 @@ def get_vulcanizado_week():
 
     CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] > 1]
 
-    MERGED_VULCANIZADO = VULCANIZADO_SEMANA.merge(CATTRAB, on=["idTrabajador"], how="left")
+    MERGED_VULCANIZADO = VULCANIZADO_SEMANA.merge(
+        CATTRAB, on=["idTrabajador"], how="left")
     return MERGED_VULCANIZADO[["Fecha", "Nombres", "idPT", "cantPT"]].to_json()
+
 
 @app.route("/api/produccion/ultima_semana/CARDADO")
 def get_cardado_week():
@@ -343,8 +376,45 @@ def get_cardado_week():
 
     CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] > 1]
 
-    MERGED_CARDADO = CARDADO_SEMANA.merge(CATTRAB, on=["idTrabajador"], how="left")
+    MERGED_CARDADO = CARDADO_SEMANA.merge(
+        CATTRAB, on=["idTrabajador"], how="left")
     return MERGED_CARDADO[["Fecha", "Nombres", "idPT", "Laminas"]].to_json()
+
+@app.route("/api/produccion/ayer/ESTACIONES")
+def get_all_stations_yesterday():
+    urlMEZCLADO = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=MEZCLADO"
+    urlLAMINADO = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=LAMINADO"
+    urlFORMULADO = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=FORMULADO"
+    urlVULCANIZADO = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=VULCANIZADO"
+    urlCARDADO = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=CARDADO"
+
+    MEZCLADO = pd.read_csv(urlMEZCLADO)
+    LAMINADO = pd.read_csv(urlLAMINADO)
+    FORMULADO = pd.read_csv(urlFORMULADO)
+    VULCANIZADO = pd.read_csv(urlVULCANIZADO)
+    CARDADO = pd.read_csv(urlCARDADO)
+
+    yesterday = (date.today() - timedelta(days=1)).strftime("%Y/%m/%d")
+
+    FORMULADO["Fecha"] = pd.to_datetime(FORMULADO["Fecha"], dayfirst=True)
+    MEZCLADO["Fecha"] = pd.to_datetime(MEZCLADO["Fecha"], dayfirst=True)
+    LAMINADO["Fecha"] = pd.to_datetime(LAMINADO["Fecha"], dayfirst=True)
+    VULCANIZADO["Fecha"] = pd.to_datetime(VULCANIZADO["Fecha"], dayfirst=True)
+    CARDADO["Fecha"] = pd.to_datetime(CARDADO["Fecha"], dayfirst=True)
+
+    FILTERED_FORMULADO = FORMULADO.loc[FORMULADO['Fecha'] >= yesterday]
+    FILTERED_MEZCLADO = MEZCLADO.loc[MEZCLADO['Fecha'] >= yesterday]
+    FILTERED_LAMINADO = LAMINADO.loc[LAMINADO['Fecha'] >= yesterday]
+    FILTERED_VULCANIZADO = VULCANIZADO.loc[VULCANIZADO['Fecha'] >= yesterday]
+    FILTERED_CARDADO = CARDADO.loc[CARDADO['Fecha'] >= yesterday]
+
+    return {
+        "formulado": FILTERED_FORMULADO.shape[0] > 0,
+        "mezclado": FILTERED_MEZCLADO.shape[0] > 0,
+        "laminado": FILTERED_LAMINADO.shape[0] > 0,
+        "vulcanizado": FILTERED_VULCANIZADO.shape[0] > 0,
+        "cardado": FILTERED_CARDADO.shape[0] > 0
+    }
 
 if __name__ == "__main__":
     app.run()

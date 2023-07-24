@@ -1,19 +1,21 @@
 import { createEffect, createSignal, Switch, type JSXElement, Match, createResource } from "solid-js";
-import Table from "./Table";
 import { reestructure_obj, sort_obj_array } from "../functions/objects";
 import { fetchIncidencias, fetchTrabajadores } from "../functions/fetch";
+import Table from "./Table";
 
 const today = new Date();
 const year_start = new Date(today.getFullYear(), 0, 1);
 
 // @ts-ignore
-const week_num = Math.ceil(Math.floor((today - year_start) / (24 * 60 * 60 * 1000))/ 7);
+const week_num = Math.ceil(Math.floor((today - year_start) / (24 * 60 * 60 * 1000)) / 7);
 
 const weekday_today = today.getDay();
 const last_thursday = new Date();
+const next_wednesday = new Date();
 
 last_thursday.setDate(weekday_today < 4 ? today.getDate() - weekday_today - 3 : today.getDate() - weekday_today + 4);
-const fechas = fillDates(last_thursday, today);
+next_wednesday.setDate(weekday_today < 4 ? today.getDate() - weekday_today + 3 : today.getDate() - weekday_today + 10);
+const fechas = fillDates(last_thursday, next_wednesday);
 
 const INCIDENCIAS = {
     "A": "bg-green-50 text-green-600",
@@ -40,17 +42,19 @@ type RecordIncidencia = {
 
 function fillDates(start: Date, finish: Date): string[] {
     let dates = [];
+    let i_date = new Date(start.getTime());
 
-    for (let date = start; date <= finish; date.setDate(date.getDate() + 1)) {
+    for (let date = i_date; date <= finish; date.setDate(date.getDate() + 1)) {
         const utc_str_arr = date.toUTCString().split(" ");
         dates.push(`${utc_str_arr[1]} ${utc_str_arr[2]}`);
     }
-    
+
     return dates;
 }
 
 function fillReport(fechas: string[], incidencias: Record<string, any>, trabajadores: Record<string, any>): RecordIncidencia[] {
     const table: RecordIncidencia[] = new Array(trabajadores.length);
+    const date_diff = today.getDate() - last_thursday.getDate() + 1;
 
     const date_dict: Record<number, string> = {
         0: "J",
@@ -67,7 +71,7 @@ function fillReport(fechas: string[], incidencias: Record<string, any>, trabajad
             nombres: `${trabajadores[i].Nombres} ${trabajadores[i].APaterno}`.toUpperCase(),
         }
 
-        for (let j = 0; j < fechas.length; j++) {
+        for (let j = 0; j < date_diff; j++) {
             // @ts-ignore
             table[i][date_dict[j]] = "A";
         }
@@ -139,7 +143,7 @@ export default function ReporteASistencia() {
 
     const [trab_resource] = createResource(fetchTrabajadores);
     const [incid_resource] = createResource(fetchIncidencias);
-    
+
     const days: Record<number, string> = {
         0: "J",
         1: "V",
@@ -151,24 +155,24 @@ export default function ReporteASistencia() {
     };
 
     const months: Record<number, string> = {
-        0: "ENE",
-        1: "FEB",
-        2: "MAR",
-        3: "ABR",
-        4: "MAY",
-        5: "JUN",
-        6: "JUL",
-        7: "AGO",
-        8: "SEP",
-        9: "OCT",
-        10: "NOV",
-        11: "DIC"
+        0: "ENERO",
+        1: "FEBRERO",
+        2: "MARZO",
+        3: "ABRIL",
+        4: "MAYO",
+        5: "JUNIO",
+        6: "JULIO",
+        7: "AGOSTO",
+        8: "SEPTIEMBRE",
+        9: "OCTUBRE",
+        10: "NOVIEMBRE",
+        11: "DICIEMBRE"
     }
 
     let titles: Record<string, JSXElement> = { 0: <h3 class="text-xl font-bold">Trabajador</h3> };
 
     for (let i = 0; i < 7; i++) {
-        titles[i + 1] = `${days[i]} - ${fechas[i].split(" ")[0]}`;
+        titles[i + 1] = `${days[i]} ${fechas[i].split(" ")[0]}`;
     }
 
     createEffect(async () => {
@@ -191,7 +195,7 @@ export default function ReporteASistencia() {
             {state().msg}
         </Match>
         <Match when={state().state === "READY" && table() !== null && typeof table()?.length !== "undefined"}>
-            <div class="w-full h-screen flex flex-col items-center gap-5">
+            <div class="w-full max-w-[800px] h-screen flex flex-col items-center gap-5 max-h-screen overflow-hidden px-5">
                 <h1 class="uppercase tracking-wide font-bold underline">José Salcedo Nuñez</h1>
 
                 <div class="flex justify-around uppercase w-full max-w-7xl">
@@ -199,10 +203,12 @@ export default function ReporteASistencia() {
                     <h2>{months[today.getMonth()]}</h2>
                     <h2 class="font-bold underline">{today.getFullYear()}</h2>
                 </div>
-                
-                <Table data={table()!} titles={Object.values(titles)} col_conditions={col_conditions} />
 
-                <div class="text-xs">
+                <div class="max-w-7xl">
+                    <Table data={table()!} titles={Object.values(titles)} col_conditions={col_conditions} />
+                </div>
+
+                <div class="text-xs w-full">
                     <h3 class="font-bold uppercase">Trabajadores: {table()!.length}</h3>
                     <h3 class="font-bold uppercase underline">Clave</h3>
 
@@ -217,12 +223,12 @@ export default function ReporteASistencia() {
                     </ul>
                 </div>
 
-                <div class="w-full flex flex-col items-center mt-20">
+                <div class="w-full flex flex-col items-center mt-5">
                     <div class="w-1/4 h-[4px] bg-black" />
                     <p>JEFE DE PRODUCCIÓN</p>
                 </div>
             </div>
         </Match>
-    </Switch> 
-    
+    </Switch>
+
 }
