@@ -1,19 +1,21 @@
 import { createEffect, createSignal, Switch, type JSXElement, Match, createResource } from "solid-js";
-import Table from "./Table";
 import { reestructure_obj, sort_obj_array } from "../functions/objects";
 import { fetchIncidencias, fetchTrabajadores } from "../functions/fetch";
+import Table from "./Table";
 
 const today = new Date();
 const year_start = new Date(today.getFullYear(), 0, 1);
 
 // @ts-ignore
-const week_num = Math.ceil(Math.floor((today - year_start) / (24 * 60 * 60 * 1000))/ 7);
+const week_num = Math.ceil(Math.floor((today - year_start) / (24 * 60 * 60 * 1000)) / 7);
 
 const weekday_today = today.getDay();
 const last_thursday = new Date();
+const next_wednesday = new Date();
 
 last_thursday.setDate(weekday_today < 4 ? today.getDate() - weekday_today - 3 : today.getDate() - weekday_today + 4);
-const fechas = fillDates(last_thursday, today);
+next_wednesday.setDate(weekday_today < 4 ? today.getDate() - weekday_today + 3 : today.getDate() - weekday_today + 10);
+const fechas = fillDates(last_thursday, next_wednesday);
 
 const INCIDENCIAS = {
     "A": "bg-green-50 text-green-600",
@@ -40,17 +42,19 @@ type RecordIncidencia = {
 
 function fillDates(start: Date, finish: Date): string[] {
     let dates = [];
+    let i_date = new Date(start.getTime());
 
-    for (let date = start; date <= finish; date.setDate(date.getDate() + 1)) {
+    for (let date = i_date; date <= finish; date.setDate(date.getDate() + 1)) {
         const utc_str_arr = date.toUTCString().split(" ");
         dates.push(`${utc_str_arr[1]} ${utc_str_arr[2]}`);
     }
-    
+
     return dates;
 }
 
 function fillReport(fechas: string[], incidencias: Record<string, any>, trabajadores: Record<string, any>): RecordIncidencia[] {
     const table: RecordIncidencia[] = new Array(trabajadores.length);
+    const date_diff = today.getDate() - last_thursday.getDate() + 1;
 
     const date_dict: Record<number, string> = {
         0: "J",
@@ -67,7 +71,7 @@ function fillReport(fechas: string[], incidencias: Record<string, any>, trabajad
             nombres: `${trabajadores[i].Nombres} ${trabajadores[i].APaterno}`.toUpperCase(),
         }
 
-        for (let j = 0; j < fechas.length; j++) {
+        for (let j = 0; j < date_diff; j++) {
             // @ts-ignore
             table[i][date_dict[j]] = "A";
         }
@@ -139,7 +143,7 @@ export default function ReporteASistencia() {
 
     const [trab_resource] = createResource(fetchTrabajadores);
     const [incid_resource] = createResource(fetchIncidencias);
-    
+
     const days: Record<number, string> = {
         0: "J",
         1: "V",
@@ -199,7 +203,7 @@ export default function ReporteASistencia() {
                     <h2>{months[today.getMonth()]}</h2>
                     <h2 class="font-bold underline">{today.getFullYear()}</h2>
                 </div>
-                
+
                 <Table data={table()!} titles={Object.values(titles)} col_conditions={col_conditions} />
 
                 <div class="text-xs">
@@ -223,6 +227,6 @@ export default function ReporteASistencia() {
                 </div>
             </div>
         </Match>
-    </Switch> 
-    
+    </Switch>
+
 }
