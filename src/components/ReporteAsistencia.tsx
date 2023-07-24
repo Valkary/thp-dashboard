@@ -172,7 +172,7 @@ export default function ReporteASistencia() {
     let titles: Record<string, JSXElement> = { 0: <h3 class="text-xl font-bold">Trabajador</h3> };
 
     for (let i = 0; i < 7; i++) {
-        titles[i + 1] = `${days[i]} - ${fechas[i].split(" ")[0]}`;
+        titles[i + 1] = `${days[i]} ${fechas[i].split(" ")[0]}`;
     }
 
     createEffect(async () => {
@@ -195,7 +195,7 @@ export default function ReporteASistencia() {
             {state().msg}
         </Match>
         <Match when={state().state === "READY" && table() !== null && typeof table()?.length !== "undefined"}>
-            <div class="w-full max-w-[800px] h-screen flex flex-col items-center gap-5">
+            <div class="w-full max-w-[800px] h-screen flex flex-col items-center gap-5 max-h-screen overflow-hidden px-5">
                 <h1 class="uppercase tracking-wide font-bold underline">José Salcedo Nuñez</h1>
 
                 <div class="flex justify-around uppercase w-full max-w-7xl">
@@ -204,7 +204,9 @@ export default function ReporteASistencia() {
                     <h2 class="font-bold underline">{today.getFullYear()}</h2>
                 </div>
 
-                <Table data={table()!} titles={Object.values(titles)} col_conditions={col_conditions} />
+                <div class="max-w-7xl">
+                    <Table data={table()!} titles={Object.values(titles)} col_conditions={col_conditions} />
+                </div>
 
                 <div class="text-xs w-full">
                     <h3 class="font-bold uppercase">Trabajadores: {table()!.length}</h3>
@@ -221,7 +223,7 @@ export default function ReporteASistencia() {
                     </ul>
                 </div>
 
-                <div class="w-full flex flex-col items-center mt-20">
+                <div class="w-full flex flex-col items-center mt-5">
                     <div class="w-1/4 h-[4px] bg-black" />
                     <p>JEFE DE PRODUCCIÓN</p>
                 </div>

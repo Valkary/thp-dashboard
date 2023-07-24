@@ -1,5 +1,5 @@
 import { For, Show, Suspense, createEffect, createResource, createSignal } from "solid-js"
-import { fetch_structured_full_trabajadores } from "../../functions/fetch";
+import { fetch_structured_full_trabajadores } from "../functions/fetch";
 
 export default function Caratula() {
     const [trabajador, setTrabajador] = createSignal<number>();
