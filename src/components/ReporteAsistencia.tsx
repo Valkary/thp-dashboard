@@ -155,18 +155,18 @@ export default function ReporteASistencia() {
     };
 
     const months: Record<number, string> = {
-        0: "ENE",
-        1: "FEB",
-        2: "MAR",
-        3: "ABR",
-        4: "MAY",
-        5: "JUN",
-        6: "JUL",
-        7: "AGO",
-        8: "SEP",
-        9: "OCT",
-        10: "NOV",
-        11: "DIC"
+        0: "ENERO",
+        1: "FEBRERO",
+        2: "MARZO",
+        3: "ABRIL",
+        4: "MAYO",
+        5: "JUNIO",
+        6: "JULIO",
+        7: "AGOSTO",
+        8: "SEPTIEMBRE",
+        9: "OCTUBRE",
+        10: "NOVIEMBRE",
+        11: "DICIEMBRE"
     }
 
     let titles: Record<string, JSXElement> = { 0: <h3 class="text-xl font-bold">Trabajador</h3> };
@@ -195,7 +195,7 @@ export default function ReporteASistencia() {
             {state().msg}
         </Match>
         <Match when={state().state === "READY" && table() !== null && typeof table()?.length !== "undefined"}>
-            <div class="w-full h-screen flex flex-col items-center gap-5">
+            <div class="w-full max-w-[800px] h-screen flex flex-col items-center gap-5">
                 <h1 class="uppercase tracking-wide font-bold underline">José Salcedo Nuñez</h1>
 
                 <div class="flex justify-around uppercase w-full max-w-7xl">
@@ -206,7 +206,7 @@ export default function ReporteASistencia() {
 
                 <Table data={table()!} titles={Object.values(titles)} col_conditions={col_conditions} />
 
-                <div class="text-xs">
+                <div class="text-xs w-full">
                     <h3 class="font-bold uppercase">Trabajadores: {table()!.length}</h3>
                     <h3 class="font-bold uppercase underline">Clave</h3>
 
