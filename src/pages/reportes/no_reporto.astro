@@ -1,8 +1,10 @@
 ---
 import NoReportoAyer from "../../components/NoReportoAyer";
+import ReporteTrabajadoresSemana from "../../components/ReporteTrabajadoresSemana";
 import Report from "../../layouts/Report.astro";
 ---
 
 <Report title="Estaciones sin reportar" reporte="Estaciones sin reportar desde ayer">
-    <NoReportoAyer client:load/>
+    <!-- <NoReportoAyer client:load/> -->
+    <ReporteTrabajadoresSemana client:load/>
 </Report>
