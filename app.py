@@ -27,9 +27,11 @@ def view_menu():
 def view_caratula():
     return render_template('/reportes/caratula_exp/index.html')
 
+
 @app.route("/reportes/asistencia")
 def view_asistencia():
     return render_template('/reportes/asistencia/index.html')
+
 
 @app.route("/reportes/no_reporto")
 def view_no_reporto():
@@ -104,6 +106,10 @@ def reporte_registro_produccion():
     LAMINADO["IdTrabajador02"] = LAMINADO["IdTrabajador02"].astype(int)
     FORMULADO["idTrabajador02"] = pd.array(FORMULADO["idTrabajador02"])
 
+    CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] == 5]
+    CATTRAB = CATTRAB.sort_values(
+        by=["idNivel"], ascending=False).loc[CATTRAB['idActivo'] == True]
+
     FILTERED_FORMULADO = FORMULADO[FORMULADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
     MERGED_FORMULADO = FILTERED_FORMULADO.merge(
@@ -152,7 +158,7 @@ def reporte_registro_produccion():
             id_trabajador_01 = row['idTrabajador']
             fecha = row['Fecha']
             mezclado_indices[int(id_trabajador_01)] = fecha
-    
+
     FILTERED_LAMINADO = LAMINADO[LAMINADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
     data = FILTERED_LAMINADO.merge(CATTRAB, on=["idTrabajador"], how="right")
@@ -172,7 +178,7 @@ def reporte_registro_produccion():
             id_trabajador_01 = row["idTrabajador"]
             id_trabajador_02 = row['IdTrabajador02']
             fecha = row['Fecha']
-            
+
             if id_trabajador_01 in laminado_indices:
                 laminado_indices[int(id_trabajador_01)].append(fecha)
             else:
@@ -182,7 +188,7 @@ def reporte_registro_produccion():
                 laminado_indices[int(id_trabajador_02)].append(fecha)
             elif pd.notna(id_trabajador_02):
                 laminado_indices[int(id_trabajador_02)] = [fecha]
-    
+
     FILTERED_VULCANIZADO = VULCANIZADO[VULCANIZADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
     data = FILTERED_VULCANIZADO.merge(
@@ -265,7 +271,7 @@ def reporte_registro_produccion():
         key: [str(ts) for ts in value]
         for key, value in combined_dict.items()
     }
-    
+
     return converted_data
 
 
@@ -411,6 +417,7 @@ def get_cardado_week():
         CATTRAB, on=["idTrabajador"], how="left")
     return MERGED_CARDADO[["Fecha", "Nombres", "idPT", "Laminas"]].to_json()
 
+
 @app.route("/api/produccion/ayer/ESTACIONES")
 def get_all_stations_yesterday():
     urlMEZCLADO = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=MEZCLADO"
@@ -446,6 +453,7 @@ def get_all_stations_yesterday():
         "vulcanizado": FILTERED_VULCANIZADO.shape[0] > 0,
         "cardado": FILTERED_CARDADO.shape[0] > 0
     }
+
 
 if __name__ == "__main__":
     app.run()
