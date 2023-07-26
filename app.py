@@ -27,10 +27,13 @@ def view_menu():
 def view_caratula():
     return render_template('/reportes/caratula_exp/index.html')
 
-
 @app.route("/reportes/asistencia")
 def view_asistencia():
     return render_template('/reportes/asistencia/index.html')
+
+@app.route("/reportes/no_reporto")
+def view_no_reporto():
+    return render_template('/reportes/no_reporto/index.html')
 
 
 @app.route("/reportes/produccion_semana")
@@ -122,9 +125,19 @@ def reporte_registro_produccion():
             if pd.isna(id_trabajador_02):
                 continue
 
+            if id_trabajador_01 in formulado_indices:
+                formulado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                formulado_indices[int(id_trabajador_01)] = [fecha]
+
             # Add the index to the list of indices for 'idTrabajador02'
             for id in id_trabajador_02.split(','):
                 formulado_indices[int(id)] = fecha
+
+                if pd.notna(id_trabajador_02) and id_trabajador_02 in formulado_indices:
+                    formulado_indices[int(id_trabajador_02)].append(fecha)
+                elif pd.notna(id_trabajador_02):
+                    formulado_indices[int(id_trabajador_02)] = [fecha]
 
     FILTERED_MEZCLADO = MEZCLADO[MEZCLADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
@@ -134,12 +147,12 @@ def reporte_registro_produccion():
 
     mezclado_indices = {}
 
-    for index, row in MERGED_MEZCLADO.iterrows():
+    for _, row in MERGED_MEZCLADO.iterrows():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row['idTrabajador']
             fecha = row['Fecha']
             mezclado_indices[int(id_trabajador_01)] = fecha
-
+    
     FILTERED_LAMINADO = LAMINADO[LAMINADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
     data = FILTERED_LAMINADO.merge(CATTRAB, on=["idTrabajador"], how="right")
@@ -154,14 +167,22 @@ def reporte_registro_produccion():
 
     laminado_indices = {}
 
-    for index, row in MERGED_LAMINADO.iterrows():
+    for _, row in MERGED_LAMINADO.iterrows():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row["idTrabajador"]
             id_trabajador_02 = row['IdTrabajador02']
             fecha = row['Fecha']
+            
+            if id_trabajador_01 in laminado_indices:
+                laminado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                laminado_indices[int(id_trabajador_01)] = [fecha]
 
-            laminado_indices[int(id_trabajador_01)] = fecha
-
+            if pd.notna(id_trabajador_02) and id_trabajador_02 in laminado_indices:
+                laminado_indices[int(id_trabajador_02)].append(fecha)
+            elif pd.notna(id_trabajador_02):
+                laminado_indices[int(id_trabajador_02)] = [fecha]
+    
     FILTERED_VULCANIZADO = VULCANIZADO[VULCANIZADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
     data = FILTERED_VULCANIZADO.merge(
@@ -177,13 +198,21 @@ def reporte_registro_produccion():
 
     vulcanizado_indices = {}
 
-    for index, row in MERGED_VULCANIZADO.iterrows():
+    for _, row in MERGED_VULCANIZADO.iterrows():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row["idTrabajador"]
             id_trabajador_02 = row['idTrabajador02']
             fecha = row['Fecha']
 
-            vulcanizado_indices[int(id_trabajador_01)] = fecha
+            if id_trabajador_01 in vulcanizado_indices:
+                vulcanizado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                vulcanizado_indices[int(id_trabajador_01)] = [fecha]
+
+            if pd.notna(id_trabajador_02) and id_trabajador_02 in vulcanizado_indices:
+                vulcanizado_indices[int(id_trabajador_02)].append(fecha)
+            elif pd.notna(id_trabajador_02):
+                vulcanizado_indices[int(id_trabajador_02)] = [fecha]
 
     FILTERED_CARDADO = CARDADO[CARDADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
@@ -199,43 +228,45 @@ def reporte_registro_produccion():
 
     cardado_indices = {}
 
-    for index, row in MERGED_CARDADO.iterrows():
+    for _, row in MERGED_CARDADO.iterrows():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row["idTrabajador"]
             id_trabajador_02 = row['idTrabajador02']
             fecha = row['Fecha']
 
-            cardado_indices[int(id_trabajador_01)] = fecha
+            if id_trabajador_01 in cardado_indices:
+                cardado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                cardado_indices[int(id_trabajador_01)] = [fecha]
+
+            if pd.notna(id_trabajador_02) and id_trabajador_02 in cardado_indices:
+                cardado_indices[int(id_trabajador_02)].append(fecha)
+            elif pd.notna(id_trabajador_02):
+                cardado_indices[int(id_trabajador_02)] = [fecha]
 
     # Combine all dictionaries
+    combined_dict = {}
     dictionaries = [vulcanizado_indices, laminado_indices,
                     mezclado_indices, formulado_indices, cardado_indices]
-    combined_dict = {}
-
-    def get_latest_timestamp(timestamp1, timestamp2):
-        if timestamp1 > timestamp2:
-            return timestamp1
-        else:
-            return timestamp2
 
     # Merge dictionaries
     for dictionary in dictionaries:
         for key, value in dictionary.items():
-            if key in combined_dict:
-                combined_dict[key] = get_latest_timestamp(
-                    combined_dict[key], value)
-            else:
-                combined_dict[key] = value
+            for date in set(value):
+                if key in combined_dict:
+                    combined_dict[key].append(date)
+                else:
+                    combined_dict[key] = [date]
 
-    filtered_data = CATTRAB[(CATTRAB['idNivel'] > 3) & (
-        CATTRAB['idNivel'] <= 5) & (CATTRAB['idActivo'])]
+    for key, value in combined_dict.items():
+        combined_dict[key] = set(value)
 
-    for index, date in combined_dict.items():
-        filtered_data.loc[filtered_data['idTrabajador']
-                          == index, "Fecha"] = date
-
-    cols = ["idTrabajador", "Nombres", "Fecha"]
-    return filtered_data[cols].groupby(['idTrabajador']).max().to_json()
+    converted_data = {
+        key: [str(ts) for ts in value]
+        for key, value in combined_dict.items()
+    }
+    
+    return converted_data
 
 
 @app.route("/api/trabajadores")
