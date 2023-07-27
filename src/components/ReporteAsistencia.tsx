@@ -96,8 +96,10 @@ function fillReport(fechas: string[], incidencias: Record<string, any>, trabajad
             j++;
         }
 
-        // @ts-ignore
-        table[id_trab][date_dict[id_fecha]] = incidencia.idIncidencia;
+        if (id_fecha !== -1) {
+            // @ts-ignore
+            table[id_trab][date_dict[id_fecha]] = incidencia.idIncidencia;
+        }
     }
 
     return table;
@@ -178,7 +180,7 @@ export default function ReporteASistencia() {
     createEffect(async () => {
         if (trab_resource.state === "ready" && incid_resource.state === "ready") {
             setState({ state: "READY", msg: "" });
-            const report = make_report(trab_resource.latest, incid_resource.latest);
+            const report = make_report(trab_resource(), incid_resource());
             setTable(report);
         } else if (trab_resource.error || incid_resource.error) {
             setState({ state: "ERROR", msg: "Error de peticion de tablas" });

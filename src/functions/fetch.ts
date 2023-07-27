@@ -2,7 +2,8 @@ import type { Estacion } from "./estaciones";
 import { reestructure_obj } from "./objects";
 import type { Trabjador } from "./week_matrix";
 
-const host = "http://192.168.100.16:5000";
+const host = "http://192.168.100.16:5000"; // Dev
+// const host = "http://192.168.100.7:5000"; // Prod
 
 export async function fetchTrabajadores() {
     return await (await fetch(`${host}/api/trabajadores`)).json();
@@ -23,6 +24,15 @@ export async function fetchNoReportoAyer() {
 export async function fetchRegistroSemanal() {
     try {
         return await (await fetch(`${host}/api/reportes/registro`)).json();
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+export async function fetchDerechoDescanso() {
+    try {
+        const data = await (await fetch(`${host}/api/reportes/derecho_descanso`)).json();
+        return reestructure_obj(data);
     } catch (e) {
         console.error(e);
     }

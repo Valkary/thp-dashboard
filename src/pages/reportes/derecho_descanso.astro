@@ -1,0 +1,20 @@
+---
+import Report from "../../layouts/Report.astro";
+import Derecho from "../../components/DerechoDescanso";
+
+const months: Record<number, string> = {
+    0: "ENE",
+    5: "JUN",
+    6: "JUL",
+    7: "DIC"
+}
+
+const today = new Date();
+const [start_month, end_month] = today.getMonth() > 5 ? [0, 5] : [6, 11];
+const year = today.getMonth() > 5 ? today.getUTCFullYear() : today.getUTCFullYear() - 1; 
+const report_title = `Derecho a descanso ${months[start_month]} - ${months[end_month]} de ${year}`;
+---
+
+<Report title="Derecho a descanso" reporte={report_title} >
+    <Derecho client:load/>
+</Report>

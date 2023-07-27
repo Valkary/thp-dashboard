@@ -4,7 +4,7 @@ import ReporteTrabajadoresSemana from "../../components/ReporteTrabajadoresSeman
 import Report from "../../layouts/Report.astro";
 ---
 
-<Report title="Estaciones sin reportar" reporte="Estaciones sin reportar desde ayer">
-    <!-- <NoReportoAyer client:load/> -->
+<Report title="Estaciones sin reportar" reporte="Estaciones/Trabajadores sin reportar">
+    <NoReportoAyer client:load/>
     <ReporteTrabajadoresSemana client:load/>
 </Report>
