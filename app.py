@@ -264,11 +264,11 @@ def reporte_registro_produccion():
     # Merge dictionaries
     for dictionary in dictionaries:
         for key, value in dictionary.items():
-            for date in set(value):
+            for d in set(value):
                 if key in combined_dict:
-                    combined_dict[key].append(date)
+                    combined_dict[key].append(d)
                 else:
-                    combined_dict[key] = [date]
+                    combined_dict[key] = [d]
 
     for key, value in combined_dict.items():
         combined_dict[key] = set(value)
