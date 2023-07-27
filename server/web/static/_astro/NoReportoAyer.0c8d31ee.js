@@ -1,0 +1,1 @@
+import{T as a}from"./Table.883ae907.js";import{d as s}from"./fetch.093e36cc.js";import{d as n}from"./web.1e73aeaa.js";const o=await s();let r=[];if(o){const e=Object.entries(o);for(let t=0;t<e.length;t++)!e[t][1]&&r.push({estacion:e[t][0].toUpperCase()})}function f(){return n(a,{titles:["Estaciones sin reportar"],get data(){return Object.values(r)}})}export{f as default};

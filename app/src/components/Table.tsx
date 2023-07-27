@@ -3,11 +3,14 @@ import { For, JSXElement } from "solid-js"
 type Props = {
     titles: JSXElement[],
     data: Record<string, any>[],
-    col_conditions?: Record<string, (key: any, value: any) => JSXElement>
+    col_conditions?: Record<string, (key: any, value: any) => JSXElement>,
+    ignore_cols?: string[]
 }
 
 export default function Table(props: Props) {
-    const data_keys = () => Object.keys(props.data[0]);
+    const data_keys = () => props.ignore_cols === undefined ? 
+        Object.keys(props.data[0]) :
+        Object.keys(props.data[0]).filter(key => props.ignore_cols?.indexOf(key) === -1);
 
     return <table>
         <thead class="bg-white border-b">

@@ -1,7 +1,8 @@
 from flask import (Flask, render_template)
 from flask_cors import CORS
 import pandas as pd
-from datetime import (date, timedelta)
+from datetime import date, timedelta, datetime
+from dateutil.relativedelta import relativedelta
 
 app = Flask(__name__,
             static_url_path='',
@@ -31,6 +32,16 @@ def view_caratula():
 @app.route("/reportes/asistencia")
 def view_asistencia():
     return render_template('/reportes/asistencia/index.html')
+
+
+@app.route("/reportes/no_reporto")
+def view_no_reporto():
+    return render_template('/reportes/no_reporto/index.html')
+
+
+@app.route("/reportes/derecho_descanso")
+def view_derecho_descanso():
+    return render_template('/reportes/derecho_descanso/index.html')
 
 
 @app.route("/reportes/produccion_semana")
@@ -101,6 +112,10 @@ def reporte_registro_produccion():
     LAMINADO["IdTrabajador02"] = LAMINADO["IdTrabajador02"].astype(int)
     FORMULADO["idTrabajador02"] = pd.array(FORMULADO["idTrabajador02"])
 
+    CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] == 5]
+    CATTRAB = CATTRAB.sort_values(
+        by=["idNivel"], ascending=False).loc[CATTRAB['idActivo'] == True]
+
     FILTERED_FORMULADO = FORMULADO[FORMULADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
     MERGED_FORMULADO = FILTERED_FORMULADO.merge(
@@ -122,9 +137,19 @@ def reporte_registro_produccion():
             if pd.isna(id_trabajador_02):
                 continue
 
+            if id_trabajador_01 in formulado_indices:
+                formulado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                formulado_indices[int(id_trabajador_01)] = [fecha]
+
             # Add the index to the list of indices for 'idTrabajador02'
             for id in id_trabajador_02.split(','):
                 formulado_indices[int(id)] = fecha
+
+                if pd.notna(id_trabajador_02) and id_trabajador_02 in formulado_indices:
+                    formulado_indices[int(id_trabajador_02)].append(fecha)
+                elif pd.notna(id_trabajador_02):
+                    formulado_indices[int(id_trabajador_02)] = [fecha]
 
     FILTERED_MEZCLADO = MEZCLADO[MEZCLADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
@@ -134,11 +159,15 @@ def reporte_registro_produccion():
 
     mezclado_indices = {}
 
-    for index, row in MERGED_MEZCLADO.iterrows():
+    for _, row in MERGED_MEZCLADO.iterrows():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row['idTrabajador']
             fecha = row['Fecha']
-            mezclado_indices[int(id_trabajador_01)] = fecha
+            
+            if id_trabajador_01 in mezclado_indices:
+                mezclado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                mezclado_indices[int(id_trabajador_01)] = [fecha]
 
     FILTERED_LAMINADO = LAMINADO[LAMINADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
@@ -154,13 +183,21 @@ def reporte_registro_produccion():
 
     laminado_indices = {}
 
-    for index, row in MERGED_LAMINADO.iterrows():
+    for _, row in MERGED_LAMINADO.iterrows():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row["idTrabajador"]
             id_trabajador_02 = row['IdTrabajador02']
             fecha = row['Fecha']
 
-            laminado_indices[int(id_trabajador_01)] = fecha
+            if id_trabajador_01 in laminado_indices:
+                laminado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                laminado_indices[int(id_trabajador_01)] = [fecha]
+
+            if pd.notna(id_trabajador_02) and id_trabajador_02 in laminado_indices:
+                laminado_indices[int(id_trabajador_02)].append(fecha)
+            elif pd.notna(id_trabajador_02):
+                laminado_indices[int(id_trabajador_02)] = [fecha]
 
     FILTERED_VULCANIZADO = VULCANIZADO[VULCANIZADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
@@ -177,13 +214,21 @@ def reporte_registro_produccion():
 
     vulcanizado_indices = {}
 
-    for index, row in MERGED_VULCANIZADO.iterrows():
+    for _, row in MERGED_VULCANIZADO.iterrows():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row["idTrabajador"]
             id_trabajador_02 = row['idTrabajador02']
             fecha = row['Fecha']
 
-            vulcanizado_indices[int(id_trabajador_01)] = fecha
+            if id_trabajador_01 in vulcanizado_indices:
+                vulcanizado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                vulcanizado_indices[int(id_trabajador_01)] = [fecha]
+
+            if pd.notna(id_trabajador_02) and id_trabajador_02 in vulcanizado_indices:
+                vulcanizado_indices[int(id_trabajador_02)].append(fecha)
+            elif pd.notna(id_trabajador_02):
+                vulcanizado_indices[int(id_trabajador_02)] = [fecha]
 
     FILTERED_CARDADO = CARDADO[CARDADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
@@ -199,43 +244,45 @@ def reporte_registro_produccion():
 
     cardado_indices = {}
 
-    for index, row in MERGED_CARDADO.iterrows():
+    for _, row in MERGED_CARDADO.iterrows():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row["idTrabajador"]
             id_trabajador_02 = row['idTrabajador02']
             fecha = row['Fecha']
 
-            cardado_indices[int(id_trabajador_01)] = fecha
+            if id_trabajador_01 in cardado_indices:
+                cardado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                cardado_indices[int(id_trabajador_01)] = [fecha]
+
+            if pd.notna(id_trabajador_02) and id_trabajador_02 in cardado_indices:
+                cardado_indices[int(id_trabajador_02)].append(fecha)
+            elif pd.notna(id_trabajador_02):
+                cardado_indices[int(id_trabajador_02)] = [fecha]
 
     # Combine all dictionaries
+    combined_dict = {}
     dictionaries = [vulcanizado_indices, laminado_indices,
                     mezclado_indices, formulado_indices, cardado_indices]
-    combined_dict = {}
-
-    def get_latest_timestamp(timestamp1, timestamp2):
-        if timestamp1 > timestamp2:
-            return timestamp1
-        else:
-            return timestamp2
 
     # Merge dictionaries
     for dictionary in dictionaries:
         for key, value in dictionary.items():
-            if key in combined_dict:
-                combined_dict[key] = get_latest_timestamp(
-                    combined_dict[key], value)
-            else:
-                combined_dict[key] = value
+            for d in set(value):
+                if key in combined_dict:
+                    combined_dict[key].append(d)
+                else:
+                    combined_dict[key] = [d]
 
-    filtered_data = CATTRAB[(CATTRAB['idNivel'] > 3) & (
-        CATTRAB['idNivel'] <= 5) & (CATTRAB['idActivo'])]
+    for key, value in combined_dict.items():
+        combined_dict[key] = set(value)
 
-    for index, date in combined_dict.items():
-        filtered_data.loc[filtered_data['idTrabajador']
-                          == index, "Fecha"] = date
+    converted_data = {
+        key: [str(ts) for ts in value]
+        for key, value in combined_dict.items()
+    }
 
-    cols = ["idTrabajador", "Nombres", "Fecha"]
-    return filtered_data[cols].groupby(['idTrabajador']).max().to_json()
+    return converted_data
 
 
 @app.route("/api/trabajadores")
@@ -243,7 +290,7 @@ def get_trabajadores():
     urlCatTRAB = "https://docs.google.com/spreadsheets/d/1f1l2OFLYFqWNcy084IiATyquMH7v2nnRx3lKfE8QAH0/gviz/tq?tqx=out:csv&sheet=catTRAB"
     CATTRAB = pd.read_csv(urlCatTRAB)
 
-    CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] > 1]
+    CATTRAB = CATTRAB.loc[CATTRAB["idNivel"] == 5]
     SORTED_TRAB = CATTRAB.sort_values(by=["idNivel"], ascending=False)
 
     return SORTED_TRAB[["idTrabajador", "idNivel", "Nombres", "APaterno"]].loc[CATTRAB['idActivo'] == True].to_json()
@@ -380,6 +427,7 @@ def get_cardado_week():
         CATTRAB, on=["idTrabajador"], how="left")
     return MERGED_CARDADO[["Fecha", "Nombres", "idPT", "Laminas"]].to_json()
 
+
 @app.route("/api/produccion/ayer/ESTACIONES")
 def get_all_stations_yesterday():
     urlMEZCLADO = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=MEZCLADO"
@@ -415,6 +463,47 @@ def get_all_stations_yesterday():
         "vulcanizado": FILTERED_VULCANIZADO.shape[0] > 0,
         "cardado": FILTERED_CARDADO.shape[0] > 0
     }
+
+
+@app.route("/api/reportes/derecho_descanso/")
+def get_derecho_descanso():
+    urlCatTRAB = "https://docs.google.com/spreadsheets/d/1f1l2OFLYFqWNcy084IiATyquMH7v2nnRx3lKfE8QAH0/gviz/tq?tqx=out:csv&sheet=catTRAB"
+    urlINCIDENCIAS = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=INCIDENCIAS"
+
+    CATTRAB = pd.read_csv(urlCatTRAB)
+    INCIDENCIAS = pd.read_csv(urlINCIDENCIAS)
+
+    INCIDENCIAS["Fecha"] = pd.to_datetime(INCIDENCIAS["Fecha"], dayfirst=True)
+    INCIDENCIAS["Fecha"] = pd.to_datetime(INCIDENCIAS["Fecha"], unit="ms")
+    CATTRAB["FecAlta"] = pd.to_datetime(CATTRAB["FecAlta"], dayfirst=True)
+    CATTRAB["FecAlta"] = pd.to_datetime(CATTRAB["FecAlta"], unit="ms")
+
+    today = date.today()
+    pivote = datetime(today.year, 6, 30).date()
+
+    inicio = None
+    fin = None
+
+    if today >= pivote:
+        inicio = datetime(today.year, 1, 1)
+        fin = datetime(today.year, 6, 30)
+    else:
+        inicio = datetime(today.year - 1, 7, 1)
+        fin = datetime(today.year - 1, 12, 31)
+
+    six_months = inicio - relativedelta(months=+6)
+    CATTRAB = CATTRAB.loc[(CATTRAB["idNivel"] == 5) & (
+        CATTRAB['idActivo'] == True) & (CATTRAB['FecAlta'] <= six_months)]
+
+    INCIDENCIAS_PERIODO = INCIDENCIAS[INCIDENCIAS["Fecha"].isin(
+        pd.date_range(inicio, fin))]
+    INCIDENCIAS_PERIODO = INCIDENCIAS_PERIODO.loc[(
+        INCIDENCIAS_PERIODO["idIncidencia"] != "V") & (INCIDENCIAS_PERIODO["idIncidencia"] != "I")]
+    
+    DERECHO_DESCANSO = CATTRAB.merge(INCIDENCIAS_PERIODO, how="left", on=["idTrabajador"])
+    DERECHO_DESCANSO = DERECHO_DESCANSO.loc[DERECHO_DESCANSO["idIncidencia"].isna()]
+    return DERECHO_DESCANSO[["idTrabajador", "Nombres", "APaterno", "AMaterno"]].to_json()
+
 
 if __name__ == "__main__":
     app.run()
