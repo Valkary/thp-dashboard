@@ -1,7 +1,8 @@
 from flask import (Flask, render_template)
 from flask_cors import CORS
 import pandas as pd
-from datetime import (date, timedelta)
+from datetime import date, timedelta, datetime
+from dateutil.relativedelta import relativedelta
 
 app = Flask(__name__,
             static_url_path='',
@@ -36,6 +37,11 @@ def view_asistencia():
 @app.route("/reportes/no_reporto")
 def view_no_reporto():
     return render_template('/reportes/no_reporto/index.html')
+
+
+@app.route("/reportes/derecho_descanso")
+def view_derecho_descanso():
+    return render_template('/reportes/derecho_descanso/index.html')
 
 
 @app.route("/reportes/produccion_semana")
@@ -453,6 +459,46 @@ def get_all_stations_yesterday():
         "vulcanizado": FILTERED_VULCANIZADO.shape[0] > 0,
         "cardado": FILTERED_CARDADO.shape[0] > 0
     }
+
+
+@app.route("/api/reportes/derecho_descanso/")
+def get_derecho_descanso():
+    urlCatTRAB = "https://docs.google.com/spreadsheets/d/1f1l2OFLYFqWNcy084IiATyquMH7v2nnRx3lKfE8QAH0/gviz/tq?tqx=out:csv&sheet=catTRAB"
+    urlINCIDENCIAS = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=INCIDENCIAS"
+
+    CATTRAB = pd.read_csv(urlCatTRAB)
+    INCIDENCIAS = pd.read_csv(urlINCIDENCIAS)
+
+    INCIDENCIAS["Fecha"] = pd.to_datetime(INCIDENCIAS["Fecha"], dayfirst=True)
+    INCIDENCIAS["Fecha"] = pd.to_datetime(INCIDENCIAS["Fecha"], unit="ms")
+    CATTRAB["FecAlta"] = pd.to_datetime(CATTRAB["FecAlta"], dayfirst=True)
+    CATTRAB["FecAlta"] = pd.to_datetime(CATTRAB["FecAlta"], unit="ms")
+
+    today = date.today()
+    pivote = datetime(today.year, 6, 30).date()
+
+    inicio = None
+    fin = None
+
+    if today >= pivote:
+        inicio = datetime(today.year, 1, 1)
+        fin = datetime(today.year, 6, 30)
+    else:
+        inicio = datetime(today.year - 1, 7, 1)
+        fin = datetime(today.year - 1, 12, 31)
+
+    six_months = inicio - relativedelta(months=+6)
+    CATTRAB = CATTRAB.loc[(CATTRAB["idNivel"] == 5) & (
+        CATTRAB['idActivo'] == True) & (CATTRAB['FecAlta'] <= six_months)]
+
+    INCIDENCIAS_PERIODO = INCIDENCIAS[INCIDENCIAS["Fecha"].isin(
+        pd.date_range(inicio, fin))]
+    INCIDENCIAS_PERIODO = INCIDENCIAS_PERIODO.loc[(
+        INCIDENCIAS_PERIODO["idIncidencia"] != "V") & (INCIDENCIAS_PERIODO["idIncidencia"] != "I")]
+    
+    DERECHO_DESCANSO = CATTRAB.merge(INCIDENCIAS_PERIODO, how="left", on=["idTrabajador"])
+    DERECHO_DESCANSO = DERECHO_DESCANSO.loc[DERECHO_DESCANSO["idIncidencia"].isna()]
+    return DERECHO_DESCANSO[["idTrabajador", "Nombres", "APaterno", "AMaterno"]].to_json()
 
 
 if __name__ == "__main__":
