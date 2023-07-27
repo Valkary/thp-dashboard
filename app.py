@@ -163,7 +163,11 @@ def reporte_registro_produccion():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row['idTrabajador']
             fecha = row['Fecha']
-            mezclado_indices[int(id_trabajador_01)] = fecha
+            
+            if id_trabajador_01 in mezclado_indices:
+                mezclado_indices[int(id_trabajador_01)].append(fecha)
+            else:
+                mezclado_indices[int(id_trabajador_01)] = [fecha]
 
     FILTERED_LAMINADO = LAMINADO[LAMINADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
