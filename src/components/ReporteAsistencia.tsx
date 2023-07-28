@@ -172,7 +172,7 @@ export default function ReporteASistencia() {
         11: "DICIEMBRE"
     }
 
-    let titles: Record<string, JSXElement> = { 0: <h3 class="text-xl font-bold">Trabajador</h3> };
+    let titles: Record<string, JSXElement> = { 0: "TRABAJADOR" };
 
     for (let i = 0; i < 7; i++) {
         titles[i + 1] = `${days[i]} ${fechas[i].split(" ")[0]}`;
@@ -202,7 +202,7 @@ export default function ReporteASistencia() {
         </Show>
         <Show when={state().state === "READY" && table() !== null && typeof table()?.length !== "undefined"}>
             <div class="w-full max-w-[800px] h-screen flex flex-col items-center gap-5 max-h-screen overflow-hidden px-5">
-                <h1 class="uppercase tracking-wide font-bold underline">José Salcedo Nuñez</h1>
+                <h1 class="uppercase tracking-wide">José Salcedo Núñez</h1>
 
                 <div class="flex justify-around uppercase w-full max-w-7xl">
                     <h2>Nómina periodo {week_num}</h2>

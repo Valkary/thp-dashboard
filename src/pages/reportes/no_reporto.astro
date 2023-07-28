@@ -4,7 +4,11 @@ import ReporteTrabajadoresSemana from "../../components/ReporteTrabajadoresSeman
 import Report from "../../layouts/Report.astro";
 ---
 
-<Report title="Estaciones sin reportar" reporte="Estaciones/Trabajadores sin reportar">
-    <NoReportoAyer client:load/>
-    <ReporteTrabajadoresSemana client:load/>
+<Report title="Estaciones sin reportar" reporte="Sin reportar">
+    <section class="w-full max-w-[800px] h-screen flex flex-col gap-5 max-h-screen overflow-hidden px-5">
+        <h2 class="text-xl font-bold uppercase">Estaciones de trabajo</h2>
+        <NoReportoAyer client:load/>
+        <h2 class="text-xl font-bold uppercase">Trabajadores</h2>
+        <ReporteTrabajadoresSemana client:load/>
+    </section>
 </Report>

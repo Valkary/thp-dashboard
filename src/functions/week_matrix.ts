@@ -1,3 +1,5 @@
+import type { JSXElement } from "solid-js";
+
 export type Trabjador = {
     idTrabajador: number,
     idNivel: number,
@@ -14,6 +16,8 @@ const week_num = Math.ceil(Math.floor((today - year_start) / (24 * 60 * 60 * 100
 const weekday_today = today.getDay();
 export const last_thursday = new Date();
 export const next_wednesday = new Date();
+
+export const date_diff = today.getDate() - last_thursday.getDate() + 1;
 
 last_thursday.setDate(weekday_today < 4 ? today.getDate() - weekday_today - 3 : today.getDate() - weekday_today + 4);
 next_wednesday.setDate(weekday_today < 4 ? today.getDate() - weekday_today + 3 : today.getDate() - weekday_today + 10);
@@ -51,6 +55,17 @@ export const date_dict: Record<number, string> = {
     5: "M",
     6: "m",
 };
+
+export function create_date_titles_curr_week(): JSXElement[] {
+    const dates = fillDates(last_thursday, next_wednesday);
+    let titles = [];
+
+    for (let i = 0; i < dates.length; i++) {
+        titles.push(`${date_dict[i]} - ${dates[i].split(" ")[0]}`)
+    }
+
+    return titles;
+}
 
 export function week_table_init(trabajadores: Trabjador[], default_val: any) {
     const table: Row<typeof default_val>[] = new Array(trabajadores.length);
@@ -92,4 +107,13 @@ export function week_table_fill(table: Row<boolean>[], date_strs: string[], even
             table[trab_id_dict[key]][day_of_week] = true;
         }
     }
+
+    for (let i = 0; i < table.length; i++) {
+        for (let j = date_diff; j < 7; j++) {
+            // @ts-ignore
+            table[i][date_dict[j]] = null;
+        }
+    }
+
+    console.log(table);
 }

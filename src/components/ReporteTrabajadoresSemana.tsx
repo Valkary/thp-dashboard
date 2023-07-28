@@ -1,11 +1,12 @@
 import { JSXElement, Show, Suspense, createEffect, createResource, createSignal } from "solid-js"
 import { fetchRegistroSemanal, fetch_structured_trabajadores, } from "../functions/fetch";
-import { Row, Trabjador, date_dict, fillDates, last_thursday, next_wednesday, week_table_fill, week_table_init } from "../functions/week_matrix";
+import { Row, Trabjador, create_date_titles_curr_week, date_dict, fillDates, last_thursday, next_wednesday, week_table_fill, week_table_init } from "../functions/week_matrix";
 import Table from "./Table";
 import Spinner from "./Spinner";
 
 function date_cond(key: string, value: boolean): JSXElement {
     if (Object.values(date_dict).indexOf(key) === -1) return <>{value}</>
+    if (value === null) return <></>
 
     return <span
         class={`inline-flex w-full h-full font-bold justify-center items-center text-lg ${value ? "bg-green-300" : "bg-red-300"}`}
@@ -37,7 +38,9 @@ export default function ReporteTrabajadoresSemana() {
             week_table_fill(week_table, fechas, registro_semana());
             setTable(week_table);
         }
-    })
+    });
+
+    const titles = ["Nombres", ...create_date_titles_curr_week()];
 
     return <Suspense fallback={<div>Error</div>}>
         <Show when={registro_semana.loading || trabajadores.loading}>
@@ -52,7 +55,7 @@ export default function ReporteTrabajadoresSemana() {
         </Show>
 
         <Show when={typeof table() !== "undefined" && table() !== null}>
-            <Table data={table()!} titles={["Nombres", "J", "V", "S", "D", "L", "M", "m"]} col_conditions={col_conditions} ignore_cols={["id"]} />
+            <Table data={table()!} titles={titles} col_conditions={col_conditions} ignore_cols={["id"]} />
         </Show>
     </Suspense>
 }
