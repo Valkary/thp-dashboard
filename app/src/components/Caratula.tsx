@@ -1,5 +1,6 @@
 import { For, Show, Suspense, createEffect, createResource, createSignal } from "solid-js"
 import { fetch_structured_full_trabajadores } from "../functions/fetch";
+import Spinner from "./Spinner";
 
 export default function Caratula() {
     const [trabajador, setTrabajador] = createSignal<number>();
@@ -14,6 +15,17 @@ export default function Caratula() {
     });
 
     return <Suspense fallback={<div>Cargando informacion</div>}>
+        <Show when={trabajadores.error}>
+            <div class="flex flex-row items-center gap-4 text-xl font-bold">
+                <Spinner size={"lg"} />
+                <p>Cargando información...</p>
+            </div>
+        </Show>
+        
+        <Show when={trabajadores.error}>
+            Error
+        </Show>
+        
         <Show when={trabajadores.state === "ready"}>
             <article class="mx-8">
                 <div class="flex w-full justify-end gap-4">
@@ -134,9 +146,6 @@ export default function Caratula() {
                     </div>
                 </Show>
             </article>
-        </Show>
-        <Show when={trabajadores.state === "errored"}>
-            Error
         </Show>
     </Suspense>
 }
