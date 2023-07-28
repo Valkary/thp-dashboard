@@ -109,7 +109,7 @@ export function week_table_fill(table: Row<boolean>[], date_strs: string[], even
     }
 
     for (let i = 0; i < table.length; i++) {
-        for (let j = date_diff; j < 7; j++) {
+        for (let j = date_diff+1; j < 7; j++) {
             // @ts-ignore
             table[i][date_dict[j]] = null;
         }
