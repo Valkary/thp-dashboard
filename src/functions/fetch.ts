@@ -2,8 +2,8 @@ import type { Estacion } from "./estaciones";
 import { reestructure_obj } from "./objects";
 import type { Trabjador } from "./week_matrix";
 
-const host = "http://192.168.100.16:5000"; // Dev
-// const host = "http://192.168.100.7:5000"; // Prod
+// const host = "http://192.168.100.16:5000"; // Dev
+const host = "http://192.168.100.7:5000"; // Prod
 
 export async function fetchTrabajadores() {
     return await (await fetch(`${host}/api/trabajadores`)).json();

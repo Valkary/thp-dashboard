@@ -2,6 +2,7 @@ import { JSXElement, Show, Suspense, createEffect, createResource, createSignal 
 import { fetchRegistroSemanal, fetch_structured_trabajadores, } from "../functions/fetch";
 import { Row, Trabjador, date_dict, fillDates, last_thursday, next_wednesday, week_table_fill, week_table_init } from "../functions/week_matrix";
 import Table from "./Table";
+import Spinner from "./Spinner";
 
 function date_cond(key: string, value: boolean): JSXElement {
     if (Object.values(date_dict).indexOf(key) === -1) return <>{value}</>
@@ -39,6 +40,17 @@ export default function ReporteTrabajadoresSemana() {
     })
 
     return <Suspense fallback={<div>Error</div>}>
+        <Show when={registro_semana.loading || trabajadores.loading}>
+            <div class="flex flex-row items-center gap-4 text-xl font-bold">
+                <Spinner size={"lg"}/>
+                <p>Cargando información...</p>
+            </div>
+        </Show>
+
+        <Show when={registro_semana.error || trabajadores.error}>
+            Error de carga!
+        </Show>
+
         <Show when={typeof table() !== "undefined" && table() !== null}>
             <Table data={table()!} titles={["Nombres", "J", "V", "S", "D", "L", "M", "m"]} col_conditions={col_conditions} ignore_cols={["id"]} />
         </Show>

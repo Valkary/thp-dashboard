@@ -1,7 +1,8 @@
-import { For, Show, Suspense, createEffect, createResource, createSignal } from "solid-js";
+import { For, Show, Suspense, createResource, createSignal } from "solid-js";
 import { fetch_structured_station_production_data } from "../functions/fetch";
 import { Estacion, estaciones } from "../functions/estaciones";
 import Table from "./Table";
+import Spinner from "./Spinner";
 
 export default function ProduccionEstacion() {
     const [station, setStation] = createSignal<Estacion>();
@@ -17,12 +18,26 @@ export default function ProduccionEstacion() {
 
         <em>Seleccionado: {station()}</em>
 
-        <Suspense fallback={<p>Cargando producción...</p>}>
-            <Show when={(station() === "MEZCLADO" || station() === "FORMULADO" || station() === "VULCANIZADO" || station() === "CARDADO") && resources() !== null}>
-                <Table titles={["Fecha", "Nombres", "Formula", "Cargas"]} data={resources()!} />
+        <Suspense fallback={<p>Error</p>}>
+            <Show when={resources.loading}>
+                <div class="flex flex-row items-center gap-4 text-xl font-bold">
+                    <Spinner size={"lg"}/>
+                    <p>Cargando información...</p>
+                </div>
             </Show>
-            <Show when={station() === "LAMINADO" && resources() !== null}>
-                <Table titles={["Trabajador", "Laminado", "Fecha"]} data={resources()!} />
+
+            <Show when={resources.error}>
+                <p>Error de carga</p>
+            </Show>
+
+            <Show when={resources.state === "ready"}>
+                <Show when={(station() === "MEZCLADO" || station() === "FORMULADO" || station() === "VULCANIZADO" || station() === "CARDADO") && resources() !== null}>
+                    <Table titles={["Fecha", "Nombres", "Formula", "Cargas"]} data={resources()!} />
+                </Show>
+
+                <Show when={station() === "LAMINADO" && resources() !== null}>
+                    <Table titles={["Fecha", "Trabajador"]} data={resources()!} />
+                </Show>
             </Show>
         </Suspense>
     </section>

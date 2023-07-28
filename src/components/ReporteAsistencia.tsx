@@ -1,7 +1,8 @@
-import { createEffect, createSignal, Switch, type JSXElement, Match, createResource } from "solid-js";
+import { createEffect, createSignal, type JSXElement, Show, createResource, Suspense } from "solid-js";
 import { reestructure_obj, sort_obj_array } from "../functions/objects";
 import { fetchIncidencias, fetchTrabajadores } from "../functions/fetch";
 import Table from "./Table";
+import Spinner from "./Spinner";
 
 const today = new Date();
 const year_start = new Date(today.getFullYear(), 0, 1);
@@ -189,14 +190,17 @@ export default function ReporteASistencia() {
         }
     });
 
-    return <Switch>
-        <Match when={state().state === "ERROR"}>
+    return <Suspense>
+        <Show when={state().state === "ERROR"}>
             {state().msg}
-        </Match>
-        <Match when={state().state === "LOADING"}>
-            {state().msg}
-        </Match>
-        <Match when={state().state === "READY" && table() !== null && typeof table()?.length !== "undefined"}>
+        </Show>
+        <Show when={state().state === "LOADING"}>
+            <div class="flex flex-row items-center gap-4 text-xl font-bold">
+                <Spinner size={"lg"}/>
+                <p>{state().msg}</p>
+            </div>
+        </Show>
+        <Show when={state().state === "READY" && table() !== null && typeof table()?.length !== "undefined"}>
             <div class="w-full max-w-[800px] h-screen flex flex-col items-center gap-5 max-h-screen overflow-hidden px-5">
                 <h1 class="uppercase tracking-wide font-bold underline">José Salcedo Nuñez</h1>
 
@@ -230,7 +234,7 @@ export default function ReporteASistencia() {
                     <p>JEFE DE PRODUCCIÓN</p>
                 </div>
             </div>
-        </Match>
-    </Switch>
+        </Show>
+    </Suspense>
 
 }
