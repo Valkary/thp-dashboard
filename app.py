@@ -131,25 +131,23 @@ def reporte_registro_produccion():
             id_trabajador_02 = row['idTrabajador02']
             fecha = row['Fecha']
 
-            formulado_indices[int(id_trabajador_01)] = fecha
-
-            # Skip if 'idTrabajador02' is NaN
-            if pd.isna(id_trabajador_02):
-                continue
-
             if id_trabajador_01 in formulado_indices:
                 formulado_indices[int(id_trabajador_01)].append(fecha)
             else:
                 formulado_indices[int(id_trabajador_01)] = [fecha]
 
+            # Skip if 'idTrabajador02' is NaN
+            if pd.isna(id_trabajador_02):
+                continue
+
             # Add the index to the list of indices for 'idTrabajador02'
             for id in id_trabajador_02.split(','):
                 formulado_indices[int(id)] = fecha
 
-                if pd.notna(id_trabajador_02) and id_trabajador_02 in formulado_indices:
-                    formulado_indices[int(id_trabajador_02)].append(fecha)
-                elif pd.notna(id_trabajador_02):
-                    formulado_indices[int(id_trabajador_02)] = [fecha]
+                if pd.notna(id) and id_trabajador_02 in formulado_indices:
+                    formulado_indices[int(id)].append(fecha)
+                elif pd.notna(id):
+                    formulado_indices[int(id)] = [fecha]
 
     FILTERED_MEZCLADO = MEZCLADO[MEZCLADO["Fecha"].isin(
         pd.date_range(last_thursday, today))]
