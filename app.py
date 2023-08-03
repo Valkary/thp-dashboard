@@ -24,34 +24,9 @@ def view_menu():
     return render_template('index.html')
 
 
-@app.route("/reportes/caratula_exp")
-def view_caratula():
-    return render_template('/reportes/caratula_exp/index.html')
-
-
-@app.route("/reportes/asistencia")
-def view_asistencia():
-    return render_template('/reportes/asistencia/index.html')
-
-
-@app.route("/reportes/no_reporto")
-def view_no_reporto():
-    return render_template('/reportes/no_reporto/index.html')
-
-
-@app.route("/reportes/derecho_descanso")
-def view_derecho_descanso():
-    return render_template('/reportes/derecho_descanso/index.html')
-
-
-@app.route("/reportes/produccion_semana")
-def view_produccion_semana():
-    return render_template('/reportes/produccion_semana/index.html')
-
-
-@app.route("/reportes/no_reporto")
-def view_produccion_ayer():
-    return render_template('/reportes/no_reporto/index.html')
+@app.route("/reportes/<reporte>")
+def view_reporte(reporte=None):
+    return render_template(f'/reportes/{reporte}/index.html')
 
 
 @app.route("/api/incidencias/semana")
@@ -161,7 +136,7 @@ def reporte_registro_produccion():
         if pd.notna(row['Fecha']):
             id_trabajador_01 = row['idTrabajador']
             fecha = row['Fecha']
-            
+
             if id_trabajador_01 in mezclado_indices:
                 mezclado_indices[int(id_trabajador_01)].append(fecha)
             else:
@@ -293,6 +268,7 @@ def get_trabajadores():
 
     return SORTED_TRAB[["idTrabajador", "idNivel", "Nombres", "APaterno"]].loc[CATTRAB['idActivo'] == True].to_json()
 
+
 @app.route("/api/trabajadores/todos")
 def get_trabajadores_todos():
     urlCatTRAB = "https://docs.google.com/spreadsheets/d/1f1l2OFLYFqWNcy084IiATyquMH7v2nnRx3lKfE8QAH0/gviz/tq?tqx=out:csv&sheet=catTRAB"
@@ -301,6 +277,7 @@ def get_trabajadores_todos():
     SORTED_TRAB = CATTRAB.sort_values(by=["idNivel"], ascending=False)
 
     return SORTED_TRAB[["idTrabajador", "idNivel", "Nombres", "APaterno"]].loc[CATTRAB['idActivo'] == True].to_json()
+
 
 @app.route("/api/trabajadores/obreros")
 def get_trabajadores_obreros():
@@ -516,10 +493,61 @@ def get_derecho_descanso():
         pd.date_range(inicio, fin))]
     INCIDENCIAS_PERIODO = INCIDENCIAS_PERIODO.loc[(
         INCIDENCIAS_PERIODO["idIncidencia"] != "V") & (INCIDENCIAS_PERIODO["idIncidencia"] != "I")]
-    
-    DERECHO_DESCANSO = CATTRAB.merge(INCIDENCIAS_PERIODO, how="left", on=["idTrabajador"])
-    DERECHO_DESCANSO = DERECHO_DESCANSO.loc[DERECHO_DESCANSO["idIncidencia"].isna()]
+
+    DERECHO_DESCANSO = CATTRAB.merge(
+        INCIDENCIAS_PERIODO, how="left", on=["idTrabajador"])
+    DERECHO_DESCANSO = DERECHO_DESCANSO.loc[DERECHO_DESCANSO["idIncidencia"].isna(
+    )]
     return DERECHO_DESCANSO[["idTrabajador", "Nombres", "APaterno", "AMaterno"]].to_json()
+
+
+@app.route("/api/reportes/incidencia_year/<incidencia>")
+def get_incidencia_year(incidencia=None):
+    urlCatTRAB = "https://docs.google.com/spreadsheets/d/1f1l2OFLYFqWNcy084IiATyquMH7v2nnRx3lKfE8QAH0/gviz/tq?tqx=out:csv&sheet=catTRAB"
+    urlINCIDENCIAS = "https://docs.google.com/spreadsheets/d/1fzy0h-g0-LbRxNcURZJqyGuIZOoJHLFkQDZ5vpAb4zc/gviz/tq?tqx=out:csv&sheet=INCIDENCIAS"
+
+    CATTRAB = pd.read_csv(urlCatTRAB)
+    INCIDENCIAS = pd.read_csv(urlINCIDENCIAS)
+
+    INCIDENCIAS["Fecha"] = pd.to_datetime(INCIDENCIAS["Fecha"], dayfirst=True)
+    INCIDENCIAS["Fecha"] = pd.to_datetime(INCIDENCIAS["Fecha"], unit="ms")
+
+    today = date.today()
+    year_start = datetime(today.year, 1, 1).date().strftime("%Y/%m/%d")
+
+    INCIDENCIAS = INCIDENCIAS.loc[(INCIDENCIAS["Fecha"] >= year_start) & (
+        INCIDENCIAS["idIncidencia"] == incidencia)]
+
+    ocurr_dict = INCIDENCIAS.copy().groupby(['idTrabajador']).size()
+    dict = {}
+    fechas = INCIDENCIAS[["idTrabajador", "Fecha"]]
+
+    for (key, val) in ocurr_dict.items():
+        dict[key] = {
+            "total": val,
+            "fechas": []
+        }
+
+    for _, row in fechas.iterrows():
+        idTrab = int(row["idTrabajador"])
+        fecha = row["Fecha"]
+        dict[idTrab]["fechas"].append(fecha)
+
+    CATTRAB["NombreCompleto"] = CATTRAB["Nombres"] + " " + CATTRAB["APaterno"]
+    res = []
+
+    for _, row in CATTRAB.iterrows():
+        idTrab = int(row["idTrabajador"])
+        nombre = row["NombreCompleto"]
+
+        if idTrab in dict:
+            res.append({
+                "nombre": nombre,
+                "total": dict[idTrab]["total"],
+                "fechas": dict[idTrab]["fechas"]
+            })
+
+    return res
 
 
 if __name__ == "__main__":
