@@ -2,11 +2,15 @@ import type { Estacion } from "./estaciones";
 import { reestructure_obj } from "./objects";
 import type { Trabjador } from "./week_matrix";
 
-// const host = "http://192.168.100.16:5000"; // Dev
+// const host = "http://192.168.100.81:5000"; // Dev
 const host = "http://192.168.100.7:5000"; // Prod
 
 export async function fetchTrabajadores() {
     return await (await fetch(`${host}/api/trabajadores`)).json();
+}
+
+export async function fetchTrabajadoresTodos() {
+    return await (await fetch(`${host}/api/trabajadores/todos`)).json();
 }
 
 export async function fetchIncidencias() {
@@ -67,6 +71,15 @@ export async function fetch_structured_trabajadores(): Promise<Trabjador[]> {
     try {
         const data = await (await fetch(`${host}/api/trabajadores`)).json();
         return reestructure_obj(data) as Trabjador[];
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
+}
+
+export async function fetch_structured_incidencias(incidencia: string) {
+    try {
+        return await (await fetch(`${host}/api/reportes/incidencia_year/${incidencia}`)).json();
     } catch (err) {
         console.error(err);
         return [];

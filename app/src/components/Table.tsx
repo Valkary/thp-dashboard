@@ -17,7 +17,7 @@ export default function Table(props: Props) {
             <tr>
                 <For each={props.titles}>
                     {title => (
-                        <th scope="col" class="text-sm font-medium text-gray-900 px-6 text-center">{title}</th>
+                        <th scope="col" class="text-smtext-gray-900 px-6 text-center font-bold">{title}</th>
                     )}
                 </For>
             </tr>

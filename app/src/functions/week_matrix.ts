@@ -1,3 +1,5 @@
+import type { JSXElement } from "solid-js";
+
 export type Trabjador = {
     idTrabajador: number,
     idNivel: number,
@@ -42,7 +44,7 @@ export type Row<T> = {
     m: T
 }
 
-export const date_dict: Record<number, string> = {
+export const date_dict = {
     0: "J",
     1: "V",
     2: "S",
@@ -50,7 +52,19 @@ export const date_dict: Record<number, string> = {
     4: "L",
     5: "M",
     6: "m",
-};
+} as const;
+
+export function create_date_titles_curr_week(): JSXElement[] {
+    const dates = fillDates(last_thursday, next_wednesday);
+    let titles = [];
+
+    for (let i = 0; i < dates.length; i++) {
+        // @ts-ignore
+        titles.push(`${date_dict[i]} - ${dates[i].split(" ")[0]}`)
+    }
+
+    return titles;
+}
 
 export function week_table_init(trabajadores: Trabjador[], default_val: any) {
     const table: Row<typeof default_val>[] = new Array(trabajadores.length);
@@ -73,6 +87,8 @@ export function week_table_init(trabajadores: Trabjador[], default_val: any) {
 }
 
 export function week_table_fill(table: Row<boolean>[], date_strs: string[], events: Record<string, any>[]) {
+    const diffTime = Math.abs(today.getTime() - last_thursday.getTime());
+    const date_diff = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     const trab_id_dict: Record<number, number> = {};
 
     for (let i = 0; i < table.length; i++) {
@@ -85,11 +101,22 @@ export function week_table_fill(table: Row<boolean>[], date_strs: string[], even
         for (let i = 0; i < values.length; i++) {
             const date = new Date(values[i]).toUTCString().split(" ");
             const date_str = `${date[1]} ${date[2]}`;
-            const day_of_week = date_dict[date_strs.indexOf(date_str)];
-
-            if (day_of_week === undefined) continue;
             // @ts-ignore
-            table[trab_id_dict[key]][day_of_week] = true;
+            const date_id: keyof typeof date_dict = date_strs.indexOf(date_str);
+            const day_of_week = date_dict[date_id];
+
+            if (day_of_week === undefined || !trab_id_dict[key]) continue;
+
+            const table_id = trab_id_dict[key]
+
+            table[table_id][day_of_week] = true;
+        }
+    }
+
+    for (let i = 0; i < table.length; i++) {
+        for (let j = date_diff+1; j < 7; j++) {
+            // @ts-ignore
+            table[i][date_dict[j]] = null;
         }
     }
 }

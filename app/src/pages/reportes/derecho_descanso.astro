@@ -12,7 +12,7 @@ const months: Record<number, string> = {
 const today = new Date();
 const [start_month, end_month] = today.getMonth() > 5 ? [0, 5] : [6, 11];
 const year = today.getMonth() > 5 ? today.getUTCFullYear() : today.getUTCFullYear() - 1; 
-const report_title = `Derecho a descanso ${months[start_month]} - ${months[end_month]} de ${year}`;
+const report_title = `Trabajadores sin faltas (${months[start_month]} - ${months[end_month]} ${year})`;
 ---
 
 <Report title="Derecho a descanso" reporte={report_title} >

@@ -1,6 +1,6 @@
 import { createEffect, createSignal, type JSXElement, Show, createResource, Suspense } from "solid-js";
 import { reestructure_obj, sort_obj_array } from "../functions/objects";
-import { fetchIncidencias, fetchTrabajadores } from "../functions/fetch";
+import { fetchIncidencias, fetchTrabajadoresTodos } from "../functions/fetch";
 import Table from "./Table";
 import Spinner from "./Spinner";
 
@@ -55,7 +55,8 @@ function fillDates(start: Date, finish: Date): string[] {
 
 function fillReport(fechas: string[], incidencias: Record<string, any>, trabajadores: Record<string, any>): RecordIncidencia[] {
     const table: RecordIncidencia[] = new Array(trabajadores.length);
-    const date_diff = today.getDate() - last_thursday.getDate() + 1;
+    const diffTime = Math.abs(today - last_thursday);
+    const date_diff = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
 
     const date_dict: Record<number, string> = {
         0: "J",
@@ -86,7 +87,7 @@ function fillReport(fechas: string[], incidencias: Record<string, any>, trabajad
         const fecha_str = `${utc_str_arr[1]} ${utc_str_arr[2]}`;
 
         const id_fecha: number = fechas.indexOf(fecha_str);
-        let id_trab: number;
+        let id_trab: number = -1;
 
         let j = 0;
         while (j < trabajadores.length) {
@@ -97,7 +98,7 @@ function fillReport(fechas: string[], incidencias: Record<string, any>, trabajad
             j++;
         }
 
-        if (id_fecha !== -1) {
+        if (id_fecha !== -1 && id_trab !== -1) {
             // @ts-ignore
             table[id_trab][date_dict[id_fecha]] = incidencia.idIncidencia;
         }
@@ -144,7 +145,7 @@ export default function ReporteASistencia() {
     const [table, setTable] = createSignal<RecordIncidencia[] | null>(null);
     const [state, setState] = createSignal<State>({ state: "LOADING" });
 
-    const [trab_resource] = createResource(fetchTrabajadores);
+    const [trab_resource] = createResource(fetchTrabajadoresTodos);
     const [incid_resource] = createResource(fetchIncidencias);
 
     const days: Record<number, string> = {
@@ -172,7 +173,7 @@ export default function ReporteASistencia() {
         11: "DICIEMBRE"
     }
 
-    let titles: Record<string, JSXElement> = { 0: <h3 class="text-xl font-bold">Trabajador</h3> };
+    let titles: Record<string, JSXElement> = { 0: "TRABAJADOR" };
 
     for (let i = 0; i < 7; i++) {
         titles[i + 1] = `${days[i]} ${fechas[i].split(" ")[0]}`;
@@ -196,18 +197,18 @@ export default function ReporteASistencia() {
         </Show>
         <Show when={state().state === "LOADING"}>
             <div class="flex flex-row items-center gap-4 text-xl font-bold">
-                <Spinner size={"lg"}/>
+                <Spinner size={"lg"} />
                 <p>{state().msg}</p>
             </div>
         </Show>
         <Show when={state().state === "READY" && table() !== null && typeof table()?.length !== "undefined"}>
-            <div class="w-full max-w-[800px] h-screen flex flex-col items-center gap-5 max-h-screen overflow-hidden px-5">
-                <h1 class="uppercase tracking-wide font-bold underline">José Salcedo Nuñez</h1>
+            <div class="w-full max-w-[800px] min-h-screen flex flex-col items-center gap-5 overflow-hidden px-5">
+                <h1 class="uppercase tracking-wide">José Salcedo Núñez</h1>
 
                 <div class="flex justify-around uppercase w-full max-w-7xl">
                     <h2>Nómina periodo {week_num}</h2>
                     <h2>{months[today.getMonth()]}</h2>
-                    <h2 class="font-bold underline">{today.getFullYear()}</h2>
+                    <h2>{today.getFullYear()}</h2>
                 </div>
 
                 <div class="max-w-7xl">
