@@ -3,6 +3,7 @@ from flask_cors import CORS
 import pandas as pd
 from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
+import json
 
 app = Flask(__name__,
             static_url_path='',
@@ -520,7 +521,9 @@ def get_incidencia_year(incidencia=None):
 
     ocurr_dict = INCIDENCIAS.copy().groupby(['idTrabajador']).size()
     dict = {}
+    INCIDENCIAS["Fecha"] = INCIDENCIAS["Fecha"].astype(str)
     fechas = INCIDENCIAS[["idTrabajador", "Fecha"]]
+
 
     for (key, val) in ocurr_dict.items():
         dict[key] = {
@@ -547,7 +550,7 @@ def get_incidencia_year(incidencia=None):
                 "fechas": dict[idTrab]["fechas"]
             })
 
-    return res
+    return json.dumps(res)
 
 
 if __name__ == "__main__":
